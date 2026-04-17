@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Matching Results{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-trophy text-warning me-2"></i>Ranked Candidates</h3>
+    <a href="{{ url_for('upload.index') }}" class="btn btn-outline-primary">
+        <i class="fas fa-redo me-1"></i>New Search
+    </a>
+</div>
+
+{% if results %}
+    <div class="row">
+        {% for r in results %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100 {% if r.rank == 1 %}border-warning border-2{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center
+                    {% if r.rank == 1 %}bg-warning{% elif r.rank == 2 %}bg-secondary text-white{% elif r.rank == 3 %}bg-danger text-white{% else %}bg-light{% endif %}">
+                    <span class="fw-bold">
+                        {% if r.rank == 1 %}🥇{% elif r.rank == 2 %}🥈{% elif r.rank == 3 %}🥉{% else %}#{{ r.rank }}{% endif %}
+                        {{ r.filename }}
+                    </span>
+                    <span class="badge bg-dark fs-6">{{ r.final_score }}%</span>
+                </div>
+                <div class="card-body">
+                    {% if r.error %}
+                        <div class="alert alert-danger py-2 mb-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>{{ r.error }}
+                        </div>
+                    {% else %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span>TF-IDF Score</span>
+                                <span>{{ r.tfidf_score }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-info" style="width: {{ r.tfidf_score }}%"></div>
+                            </div>
+                        </div>
+
+                        {% if r.bert_score %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span>BERT Score</span>
+                                <span>{{ r.bert_score }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: {{ r.bert_score }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if r.raw_text_preview %}
+                        <details class="mt-2">
+                            <summary class="text-muted small" style="cursor: pointer;">Preview Text</summary>
+                            <p class="text-muted small mt-2 p-2 bg-light rounded">{{ r.raw_text_preview }}</p>
+                        </details>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-warning">No results found. Please upload resumes and try again.</div>
+{% endif %}
+{% endblock %}
