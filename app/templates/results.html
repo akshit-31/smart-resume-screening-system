@@ -53,14 +53,20 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="d-flex gap-2">
-                    <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=analyze"
-                        class="btn btn-primary btn-sm flex-fill">
-                        <i class="fas fa-eye me-1"></i>View & Analyze
-                    </a>
-                    <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=ai"
-                        class="btn btn-success btn-sm flex-fill">
-                        <i class="fas fa-magic me-1"></i>AI Resume
+                <div class="d-flex flex-column gap-2">
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=analyze"
+                            class="btn btn-primary btn-sm flex-fill">
+                            <i class="fas fa-eye me-1"></i>View & Analyze
+                        </a>
+                        <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=ai"
+                            class="btn btn-success btn-sm flex-fill">
+                            <i class="fas fa-magic me-1"></i>AI Resume
+                        </a>
+                    </div>
+                    <a href="{{ url_for('roast.roast_page', filename=r.filename) }}"
+                        class="btn btn-danger btn-sm w-100">
+                        <i class="fas fa-fire me-1"></i>💀 Roast My Resume
                     </a>
                 </div>
                 {% endif %}

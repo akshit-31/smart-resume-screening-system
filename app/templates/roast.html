@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Resume Roast 💀 — {{ filename }}{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">
+            <i class="fas fa-fire me-2" style="color:#ef4444;"></i>Resume Roast + Rewrite Battle
+        </h3>
+        <small class="text-muted"><i class="fas fa-file-pdf text-danger me-1"></i>{{ filename }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <button id="generateBtn" class="btn btn-danger" onclick="generateRoast()">
+            <i class="fas fa-fire me-1"></i>Generate Roast
+        </button>
+        <a href="{{ url_for('results.show_results') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<!-- Initial State -->
+<div id="initialState" class="text-center py-5">
+    <div
+        style="width:100px;height:100px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:3rem;box-shadow:0 0 40px rgba(239,68,68,0.4);">
+        💀
+    </div>
+    <h4 style="color:#ef4444;">Ready to Get Roasted?</h4>
+    <p class="text-muted">Click <strong style="color:#ef4444;">Generate Roast</strong> to see brutal but honest feedback
+        on this resume, followed by a professionally rewritten version.</p>
+    {% if not job_description %}
+    <div class="alert alert-warning mt-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        No job description found. Please <a href="{{ url_for('match.jd_input') }}"
+            style="color:inherit;font-weight:bold;">run matching first</a>.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Loading State -->
+<div id="loadingState" class="text-center py-5" style="display:none;">
+    <div class="spinner-border mb-3" style="color:#ef4444;width:3rem;height:3rem;" role="status"></div>
+    <h5 style="color:#ef4444;">Roasting in progress... 🔥</h5>
+    <p class="text-muted">Claude is analyzing and roasting this resume. This may take 20-40 seconds.</p>
+</div>
+
+<!-- Error State -->
+<div id="errorState" class="alert alert-danger" style="display:none;">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span id="errorMessage"></span>
+</div>
+
+<!-- Result State: Two Columns -->
+<div id="resultState" class="row g-4" style="display:none;">
+
+    <!-- LEFT: Roast -->
+    <div class="col-lg-6">
+        <div class="card shadow-lg h-100" style="border:2px solid #ef4444;">
+            <div class="card-header text-white d-flex justify-content-between align-items-center"
+                style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-fire me-2"></i>💀 Roast Mode
+                </h5>
+            </div>
+            <div class="card-body p-4" style="max-height:70vh;overflow-y:auto;">
+                <div id="roastContent" style="white-space:pre-line;font-size:0.95rem;line-height:1.8;color:#e0e0e0;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Fixed Version -->
+    <div class="col-lg-6">
+        <div class="card shadow-lg h-100" style="border:2px solid #10b981;">
+            <div class="card-header text-white d-flex justify-content-between align-items-center"
+                style="background:linear-gradient(135deg,#10b981,#059669);">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-check-circle me-2"></i>✅ Fixed Version
+                </h5>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light btn-sm" onclick="copyFixed()">
+                        <i class="fas fa-copy me-1"></i>Copy
+                    </button>
+                    <button class="btn btn-light btn-sm" onclick="downloadFixed()">
+                        <i class="fas fa-download me-1"></i>Download
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-4" style="max-height:70vh;overflow-y:auto;">
+                <div id="fixedContent" style="white-space:pre-line;font-size:0.95rem;line-height:1.8;color:#e0e0e0;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let fixedText = '';
+    let downloadText = '';
+
+    function generateRoast() {
+        // Hide all states
+        document.getElementById('initialState').style.display = 'none';
+        document.getElementById('errorState').style.display = 'none';
+        document.getElementById('resultState').style.display = 'none';
+
+        // Show loading
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('generateBtn').disabled = true;
+
+        // Call API
+        fetch('{{ url_for("roast.roast_resume", filename=filename) }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+
+                if (data.success) {
+                    // Display roast and fixed version
+                    document.getElementById('roastContent').textContent = data.roast;
+                    document.getElementById('fixedContent').textContent = data.fixed;
+                    fixedText = data.fixed;
+                    downloadText = data.download_text;
+                    document.getElementById('resultState').style.display = 'flex';
+                } else {
+                    // Show error
+                    document.getElementById('errorMessage').textContent = data.error || 'Unknown error occurred';
+                    document.getElementById('errorState').style.display = 'block';
+                }
+            })
+            .catch(err => {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('errorMessage').textContent = 'Network error: ' + err.message;
+                document.getElementById('errorState').style.display = 'block';
+            });
+    }
+
+    function copyFixed() {
+        navigator.clipboard.writeText(fixedText).then(() => {
+            const btn = event.target.closest('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            btn.classList.remove('btn-light');
+            btn.classList.add('btn-success');
+            setTimeout(() => {
+                btn.innerHTML = orig;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-light');
+            }, 2000);
+        }).catch(err => {
+            alert('Failed to copy: ' + err);
+        });
+    }
+
+    function downloadFixed() {
+        const blob = new Blob([downloadText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'roasted_fixed_{{ filename }}.txt';
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    }
+</script>
+
+{% endblock %}
