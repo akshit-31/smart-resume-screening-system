@@ -21,6 +21,7 @@ instance/
 
 # Uploads (don't commit resumes)
 app/static/uploads/*.pdf
+!app/static/uploads/.gitkeep
 
 # Jupyter
 .ipynb_checkpoints/
