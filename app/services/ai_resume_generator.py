@@ -1,43 +1,33 @@
 """
 AI Resume Generator Service
-Uses Anthropic Claude API to generate optimized resumes
+Uses Google Gemini API (free) to generate optimized resumes
 """
 
 import os
-import requests
-from typing import Dict, Optional
+from typing import Dict
 
 
 def generate_optimized_resume(original_resume: str, job_description: str) -> Dict[str, any]:
     """
-    Generate an optimized resume using Claude API
-    
-    Args:
-        original_resume: Original resume text
-        job_description: Target job description
-        
-    Returns:
-        Dictionary with 'success', 'optimized_resume', and optional 'error'
+    Generate an optimized resume using Google Gemini API (free tier)
     """
-    api_key = os.getenv('ANTHROPIC_API_KEY')
-    
+    api_key = os.getenv('GEMINI_API_KEY')
+
     if not api_key:
         return {
             'success': False,
-            'error': 'ANTHROPIC_API_KEY not found in environment variables'
+            'error': 'GEMINI_API_KEY not found. Get free key at https://aistudio.google.com/app/apikey'
         }
-    
-    # Construct the prompt
-    prompt = f"""You are an expert resume writer and career coach. Your task is to optimize the following resume to better match the given job description.
+
+    prompt = f"""You are an expert resume writer and career coach. Optimize the following resume to better match the given job description.
 
 IMPORTANT RULES:
-1. DO NOT fabricate or add any information that is not present in the original resume
+1. DO NOT fabricate or add any information not present in the original resume
 2. DO NOT invent skills, experiences, or qualifications
 3. Only reorganize, rephrase, and highlight existing information
 4. Emphasize relevant skills and experiences that match the job description
 5. Use strong action verbs and quantifiable achievements where they already exist
 6. Maintain professional formatting and structure
-7. Keep the same level of detail but optimize the presentation
 
 ORIGINAL RESUME:
 {original_resume}
@@ -45,85 +35,40 @@ ORIGINAL RESUME:
 JOB DESCRIPTION:
 {job_description}
 
-Please provide an optimized version of the resume that:
-- Highlights relevant skills and experiences for this specific role
-- Uses keywords from the job description where naturally applicable
-- Reorganizes content to put most relevant information first
-- Improves clarity and impact of existing content
-- Maintains all factual information from the original
-
 Return ONLY the optimized resume text, without any additional commentary or explanations."""
 
-    # Call Claude API
     try:
-        response = requests.post(
-            'https://api.anthropic.com/v1/messages',
-            headers={
-                'x-api-key': api_key,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json'
-            },
-            json={
-                'model': 'claude-sonnet-4-20250514',
-                'max_tokens': 4096,
-                'messages': [
-                    {
-                        'role': 'user',
-                        'content': prompt
-                    }
-                ]
-            },
-            timeout=60
+        import google.generativeai as genai
+
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=4096,
+                temperature=0.7,
+            )
         )
-        
-        response.raise_for_status()
-        
-        data = response.json()
-        
-        # Extract the optimized resume from response
-        if 'content' in data and len(data['content']) > 0:
-            optimized_resume = data['content'][0]['text']
-            return {
-                'success': True,
-                'optimized_resume': optimized_resume
-            }
-        else:
-            return {
-                'success': False,
-                'error': 'Unexpected response format from Claude API'
-            }
-            
-    except requests.exceptions.Timeout:
+
+        optimized_resume = response.text
         return {
-            'success': False,
-            'error': 'Request to Claude API timed out. Please try again.'
+            'success': True,
+            'optimized_resume': optimized_resume
         }
-    except requests.exceptions.RequestException as e:
-        return {
-            'success': False,
-            'error': f'API request failed: {str(e)}'
-        }
+
     except Exception as e:
-        return {
-            'success': False,
-            'error': f'Unexpected error: {str(e)}'
-        }
+        error_msg = str(e)
+        if 'API_KEY_INVALID' in error_msg or 'invalid' in error_msg.lower():
+            return {'success': False, 'error': 'Invalid GEMINI_API_KEY. Please check your key.'}
+        elif 'quota' in error_msg.lower():
+            return {'success': False, 'error': 'Gemini API quota exceeded. Try again later.'}
+        return {'success': False, 'error': f'Gemini API error: {error_msg}'}
 
 
 def format_resume_for_download(resume_text: str, filename: str) -> str:
-    """
-    Format resume text for download
-    
-    Args:
-        resume_text: The resume content
-        filename: Original filename for reference
-        
-    Returns:
-        Formatted text ready for download
-    """
-    header = f"AI-OPTIMIZED RESUME\n"
-    header += f"Generated by Smart Resume Screener\n"
+    header  = "AI-OPTIMIZED RESUME\n"
+    header += "Generated by Smart Resume Screener\n"
     header += f"Based on: {filename}\n"
     header += "=" * 80 + "\n\n"
-    
     return header + resume_text

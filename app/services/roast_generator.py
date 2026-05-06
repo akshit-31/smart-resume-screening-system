@@ -1,34 +1,25 @@
 """
 Resume Roast Generator Service
-Uses Anthropic Claude API to roast resumes and provide fixed versions
+Uses Google Gemini API (free) to roast resumes and provide fixed versions
 """
 
 import os
-import requests
 from typing import Dict
 
 
 def generate_roast(resume_text: str, job_description: str) -> Dict[str, any]:
     """
     Generate a brutal but funny roast of the resume, then provide a fixed version
-    
-    Args:
-        resume_text: Original resume text
-        job_description: Target job description
-        
-    Returns:
-        Dictionary with 'success', 'roast', 'fixed', and optional 'error'
     """
-    api_key = os.getenv('ANTHROPIC_API_KEY')
-    
+    api_key = os.getenv('GEMINI_API_KEY')
+
     if not api_key:
         return {
             'success': False,
-            'error': 'ANTHROPIC_API_KEY not found in environment variables'
+            'error': 'GEMINI_API_KEY not found. Get free key at https://aistudio.google.com/app/apikey'
         }
-    
-    # Construct the roast prompt
-    prompt = f"""You are a brutally honest but hilarious HR expert who roasts resumes. Your job is to:
+
+    prompt = f"""You are a brutally honest but hilarious HR expert who roasts resumes.
 
 PART 1 - ROAST MODE 💀
 Roast this resume mercilessly but professionally. Call out:
@@ -37,19 +28,15 @@ Roast this resume mercilessly but professionally. Call out:
 - Missing keywords from the job description
 - Formatting issues and inconsistencies
 - Overused phrases and clichés
-- Anything that makes you cringe
 
 Be specific, witty, and harsh but keep it professional. Use emoji. Give 5-7 specific roast points as a numbered list.
 
 PART 2 - FIXED VERSION ✅
-After roasting, rewrite EVERY section you criticized. Make it:
+Rewrite EVERY section you criticized. Make it:
 - Sharp and specific with real impact
 - ATS-friendly with relevant keywords from the JD
 - Quantified where possible
 - Tailored to the job description
-- Professional and compelling
-
-Show the complete improved version of the resume.
 
 ---
 
@@ -68,100 +55,59 @@ Format your response EXACTLY like this:
 1. [First roast point with emoji]
 2. [Second roast point with emoji]
 3. [Third roast point with emoji]
-... (5-7 points total)
+(5-7 points total)
 
 ---FIXED VERSION---
 
-[Complete rewritten resume here]
+[Complete rewritten resume here]"""
 
-Remember: Be brutally honest in the roast, then show them how it's done in the fixed version!"""
-
-    # Call Claude API
     try:
-        response = requests.post(
-            'https://api.anthropic.com/v1/messages',
-            headers={
-                'x-api-key': api_key,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json'
-            },
-            json={
-                'model': 'claude-sonnet-4-20250514',
-                'max_tokens': 4096,
-                'messages': [
-                    {
-                        'role': 'user',
-                        'content': prompt
-                    }
-                ]
-            },
-            timeout=90
+        import google.generativeai as genai
+
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=4096,
+                temperature=0.9,
+            )
         )
-        
-        response.raise_for_status()
-        
-        data = response.json()
-        
-        # Extract the response
-        if 'content' in data and len(data['content']) > 0:
-            full_response = data['content'][0]['text']
-            
-            # Split by the separator
-            if '---FIXED VERSION---' in full_response:
-                parts = full_response.split('---FIXED VERSION---', 1)
-                roast_text = parts[0].strip()
-                fixed_text = parts[1].strip()
-            elif 'FIXED VERSION' in full_response:
-                parts = full_response.split('FIXED VERSION', 1)
-                roast_text = parts[0].strip()
-                fixed_text = parts[1].strip()
-            else:
-                # Fallback: try to split by common patterns
-                roast_text = full_response
-                fixed_text = "Could not parse fixed version. Please try again."
-            
-            return {
-                'success': True,
-                'roast': roast_text,
-                'fixed': fixed_text
-            }
+
+        full_response = response.text
+
+        # Split roast and fixed version
+        if '---FIXED VERSION---' in full_response:
+            parts = full_response.split('---FIXED VERSION---', 1)
+            roast_text = parts[0].strip()
+            fixed_text = parts[1].strip()
+        elif 'FIXED VERSION' in full_response:
+            parts = full_response.split('FIXED VERSION', 1)
+            roast_text = parts[0].strip()
+            fixed_text = parts[1].strip()
         else:
-            return {
-                'success': False,
-                'error': 'Unexpected response format from Claude API'
-            }
-            
-    except requests.exceptions.Timeout:
+            roast_text = full_response
+            fixed_text = "Could not parse fixed version. Please try again."
+
         return {
-            'success': False,
-            'error': 'Request to Claude API timed out. Please try again.'
+            'success': True,
+            'roast': roast_text,
+            'fixed': fixed_text
         }
-    except requests.exceptions.RequestException as e:
-        return {
-            'success': False,
-            'error': f'API request failed: {str(e)}'
-        }
+
     except Exception as e:
-        return {
-            'success': False,
-            'error': f'Unexpected error: {str(e)}'
-        }
+        error_msg = str(e)
+        if 'API_KEY_INVALID' in error_msg or 'invalid' in error_msg.lower():
+            return {'success': False, 'error': 'Invalid GEMINI_API_KEY. Please check your key.'}
+        elif 'quota' in error_msg.lower():
+            return {'success': False, 'error': 'Gemini API quota exceeded. Try again later.'}
+        return {'success': False, 'error': f'Gemini API error: {error_msg}'}
 
 
 def format_roast_for_download(fixed_text: str, filename: str) -> str:
-    """
-    Format fixed resume for download
-    
-    Args:
-        fixed_text: The fixed resume content
-        filename: Original filename for reference
-        
-    Returns:
-        Formatted text ready for download
-    """
-    header = f"ROASTED & FIXED RESUME\n"
-    header += f"Generated by Smart Resume Screener - Roast Mode 💀\n"
+    header  = "ROASTED & FIXED RESUME\n"
+    header += "Generated by Smart Resume Screener - Roast Mode 💀\n"
     header += f"Based on: {filename}\n"
     header += "=" * 80 + "\n\n"
-    
     return header + fixed_text
