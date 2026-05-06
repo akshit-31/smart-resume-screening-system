@@ -7,6 +7,7 @@ def create_app():
     app.config.from_object(Config)
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs('/tmp/flask_sessions', exist_ok=True)
 
     from app.routes.upload import upload_bp
     from app.routes.match import match_bp
