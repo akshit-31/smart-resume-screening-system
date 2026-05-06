@@ -1,0 +1,526 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'ai' %}AI Resume{% else %}Resume Analysis{% endif %} — {{ filename }}{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">
+            {% if mode == 'ai' %}
+            <i class="fas fa-magic me-2" style="color:#a78bfa;"></i>AI Optimized Resume
+            {% else %}
+            <i class="fas fa-chart-bar me-2" style="color:#a78bfa;"></i>Resume Analysis
+            {% endif %}
+        </h3>
+        <small class="text-muted"><i class="fas fa-file-pdf text-danger me-1"></i>{{ filename }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        {% if mode == 'ai' %}
+        <a href="?mode=analyze" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-chart-bar me-1"></i>View Analysis
+        </a>
+        {% endif %}
+        <a href="{{ url_for('results.show_results') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<!-- ==================== ANALYZE MODE ==================== -->
+{% if mode == 'analyze' %}
+
+{% set s = analysis.sections %}
+{% set ats = analysis.ats_score %}
+{% set kw = analysis.keyword_analysis %}
+
+<!-- Row 1: Score Cards -->
+<div class="row g-3 mb-4">
+
+    <!-- ATS Score -->
+    <div class="col-md-3 col-6">
+        <div class="card text-center p-3 h-100" style="border:1px solid rgba(102,126,234,0.3);">
+            <div
+                style="font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#667eea,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                {{ ats.percentage }}
+            </div>
+            <div style="font-size:1.5rem;color:#a78bfa;font-weight:700;">{{ ats.grade }}</div>
+            <small class="text-muted">ATS Score</small>
+        </div>
+    </div>
+
+    <!-- Keyword Match -->
+    <div class="col-md-3 col-6">
+        <div class="card text-center p-3 h-100" style="border:1px solid rgba(16,185,129,0.3);">
+            <div
+                style="font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#10b981,#6ee7b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                {% if kw %}{{ kw.match_percentage }}%{% else %}—{% endif %}
+            </div>
+            <div style="font-size:0.85rem;color:#6ee7b7;font-weight:600;">
+                {% if kw %}{{ kw.total_matched }}/{{ kw.total_jd_keywords }} keywords{% else %}No JD{% endif %}
+            </div>
+            <small class="text-muted">JD Match</small>
+        </div>
+    </div>
+
+    <!-- Experience -->
+    <div class="col-md-3 col-6">
+        <div class="card text-center p-3 h-100" style="border:1px solid rgba(245,158,11,0.3);">
+            <div
+                style="font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#fcd34d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                {{ analysis.experience_years }}
+            </div>
+            <div style="font-size:0.85rem;color:#fcd34d;font-weight:600;">{{ analysis.education_level }}</div>
+            <small class="text-muted">Yrs Exp / Education</small>
+        </div>
+    </div>
+
+    <!-- Word Count -->
+    <div class="col-md-3 col-6">
+        <div class="card text-center p-3 h-100" style="border:1px solid rgba(239,68,68,0.3);">
+            <div
+                style="font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#ef4444,#fca5a5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                {{ analysis.word_count }}
+            </div>
+            <div style="font-size:0.85rem;color:#fca5a5;font-weight:600;">Readability: {{
+                analysis.readability_score|round(1) }}</div>
+            <small class="text-muted">Words / Readability</small>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: ATS Breakdown Chart + Keyword Match -->
+<div class="row g-3 mb-4">
+
+    <!-- ATS Component Chart -->
+    <div class="col-lg-6">
+        <div class="card p-4 h-100">
+            <h6 class="fw-bold mb-3" style="color:#a78bfa;">
+                <i class="fas fa-tachometer-alt me-2"></i>ATS Score Breakdown
+            </h6>
+            {% set comp = ats.components %}
+            {% set bars = [
+            ('Contact Info', comp.contact_info, 20, '#667eea'),
+            ('Keywords', comp.keywords, 20, '#10b981'),
+            ('Experience', comp.experience, 20, '#f59e0b'),
+            ('Education', comp.education, 15, '#ef4444'),
+            ('Skills', comp.skills, 10, '#a78bfa'),
+            ('Formatting', comp.formatting, 15, '#06b6d4')
+            ] %}
+            {% for label, val, max_val, color in bars %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <small style="color:#c4b5fd;">{{ label }}</small>
+                    <small style="color:#e0e0e0;">{{ val }}/{{ max_val }}</small>
+                </div>
+                <div style="background:rgba(255,255,255,0.08);border-radius:6px;height:10px;">
+                    <div
+                        style="width:{{ (val/max_val*100)|round }}%;background:{{ color }};height:10px;border-radius:6px;transition:width 1s ease;">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Keyword Analysis -->
+    <div class="col-lg-6">
+        <div class="card p-4 h-100">
+            <h6 class="fw-bold mb-3" style="color:#10b981;">
+                <i class="fas fa-key me-2"></i>Keyword Analysis
+            </h6>
+            {% if kw %}
+            <!-- Donut-style match indicator -->
+            <div class="text-center mb-3">
+                <div style="position:relative;display:inline-block;">
+                    <canvas id="keywordDonut" width="120" height="120"></canvas>
+                    <div
+                        style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem;font-weight:700;color:#6ee7b7;">
+                        {{ kw.match_percentage }}%
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matched keywords -->
+            {% if kw.matched_keywords %}
+            <div class="mb-2">
+                <small style="color:#6ee7b7;font-weight:600;"><i class="fas fa-check-circle me-1"></i>Matched ({{
+                    kw.matched_keywords|length }})</small>
+                <div class="mt-1">
+                    {% for k in kw.matched_keywords[:8] %}
+                    <span class="badge me-1 mb-1"
+                        style="background:rgba(16,185,129,0.2);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3);">{{
+                        k.keyword }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Missing keywords -->
+            {% if kw.missing_keywords %}
+            <div>
+                <small style="color:#fca5a5;font-weight:600;"><i class="fas fa-times-circle me-1"></i>Missing ({{
+                    kw.missing_keywords|length }})</small>
+                <div class="mt-1">
+                    {% for k in kw.missing_keywords[:6] %}
+                    <span class="badge me-1 mb-1"
+                        style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);">{{
+                        k.keyword }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                <p class="mb-0">Run matching with a job description to see keyword analysis.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: Strengths & Weaknesses + Skills -->
+<div class="row g-3 mb-4">
+
+    <!-- Strengths & Weaknesses -->
+    <div class="col-lg-5">
+        <div class="card p-4 h-100">
+            <h6 class="fw-bold mb-3" style="color:#a78bfa;">
+                <i class="fas fa-balance-scale me-2"></i>Resume Insights
+            </h6>
+            {% if analysis.strengths %}
+            <div class="mb-3">
+                <small class="fw-bold" style="color:#6ee7b7;"><i class="fas fa-thumbs-up me-1"></i>Strengths</small>
+                <ul class="mt-2 mb-0 ps-3">
+                    {% for s in analysis.strengths %}
+                    <li style="color:#a0aec0;font-size:0.88rem;margin-bottom:0.3rem;">{{ s }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if analysis.weaknesses %}
+            <div>
+                <small class="fw-bold" style="color:#fca5a5;"><i
+                        class="fas fa-exclamation-triangle me-1"></i>Improve</small>
+                <ul class="mt-2 mb-0 ps-3">
+                    {% for w in analysis.weaknesses %}
+                    <li style="color:#a0aec0;font-size:0.88rem;margin-bottom:0.3rem;">{{ w }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Skills by Category -->
+    <div class="col-lg-7">
+        <div class="card p-4 h-100">
+            <h6 class="fw-bold mb-3" style="color:#a78bfa;">
+                <i class="fas fa-layer-group me-2"></i>Skills by Category
+            </h6>
+            {% if analysis.skill_categories %}
+            {% set cat_colors = {
+            'Programming Languages': '#667eea',
+            'Frameworks & Libraries': '#10b981',
+            'Databases': '#f59e0b',
+            'Cloud & DevOps': '#06b6d4',
+            'Data Science & AI': '#a78bfa',
+            'Other': '#94a3b8'
+            } %}
+            {% for cat, skills in analysis.skill_categories.items() %}
+            <div class="mb-3">
+                <small class="fw-bold mb-1 d-block" style="color:{{ cat_colors.get(cat, '#a78bfa') }};">{{ cat
+                    }}</small>
+                {% for skill in skills %}
+                <span class="badge me-1 mb-1"
+                    style="font-size:0.82rem;padding:0.35rem 0.65rem;background:linear-gradient(135deg,{{ cat_colors.get(cat,'#667eea') }}55,{{ cat_colors.get(cat,'#764ba2') }}33);color:white;border:1px solid {{ cat_colors.get(cat,'#667eea') }}44;">
+                    {{ skill }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted">No skills detected.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Row 4: Resume Sections -->
+<div class="card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0" style="color:#a78bfa;">
+            <i class="fas fa-file-alt me-2"></i>Resume Sections
+        </h6>
+        <button class="btn btn-sm btn-outline-secondary" onclick="toggleRaw()">
+            <i class="fas fa-code me-1"></i><span id="toggleLabel">Raw Text</span>
+        </button>
+    </div>
+
+    <div id="parsedView">
+        <div class="row g-3">
+
+            <!-- Contact -->
+            {% if s.contact and (s.contact.name or s.contact.email or s.contact.phone) %}
+            <div class="col-12">
+                <div class="p-3 rounded"
+                    style="background:rgba(102,126,234,0.08);border:1px solid rgba(102,126,234,0.2);">
+                    <small class="fw-bold d-block mb-2"
+                        style="color:#818cf8;text-transform:uppercase;letter-spacing:1px;font-size:0.75rem;">
+                        <i class="fas fa-address-card me-1"></i>Contact
+                    </small>
+                    <div class="d-flex flex-wrap gap-3">
+                        {% if s.contact.name %}<span><i class="fas fa-user text-muted me-1"></i><strong>{{
+                                s.contact.name }}</strong></span>{% endif %}
+                        {% if s.contact.email %}<span><i class="fas fa-envelope text-muted me-1"></i><a
+                                href="mailto:{{ s.contact.email }}" style="color:#818cf8;">{{ s.contact.email
+                                }}</a></span>{% endif %}
+                        {% if s.contact.phone %}<span><i class="fas fa-phone text-muted me-1"></i>{{ s.contact.phone
+                            }}</span>{% endif %}
+                        {% if s.contact.linkedin %}<a href="https://{{ s.contact.linkedin }}" target="_blank"
+                            style="color:#818cf8;"><i class="fab fa-linkedin me-1"></i>LinkedIn</a>{% endif %}
+                        {% if s.contact.github %}<a href="https://{{ s.contact.github }}" target="_blank"
+                            style="color:#818cf8;"><i class="fab fa-github me-1"></i>GitHub</a>{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Summary -->
+            {% if s.summary %}
+            <div class="col-md-6">
+                <div class="p-3 rounded h-100"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
+                    <small class="fw-bold d-block mb-2"
+                        style="color:#a78bfa;text-transform:uppercase;letter-spacing:1px;font-size:0.75rem;"><i
+                            class="fas fa-align-left me-1"></i>Summary</small>
+                    <p style="font-size:0.9rem;line-height:1.6;color:#c4b5fd;margin:0;">{{ s.summary }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Education -->
+            {% if s.education %}
+            <div class="col-md-6">
+                <div class="p-3 rounded h-100"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
+                    <small class="fw-bold d-block mb-2"
+                        style="color:#fcd34d;text-transform:uppercase;letter-spacing:1px;font-size:0.75rem;"><i
+                            class="fas fa-graduation-cap me-1"></i>Education</small>
+                    <div style="font-size:0.9rem;line-height:1.6;white-space:pre-line;color:#e0e0e0;">{{ s.education }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Experience -->
+            {% if s.experience %}
+            <div class="col-12">
+                <div class="p-3 rounded"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
+                    <small class="fw-bold d-block mb-2"
+                        style="color:#6ee7b7;text-transform:uppercase;letter-spacing:1px;font-size:0.75rem;"><i
+                            class="fas fa-briefcase me-1"></i>Experience</small>
+                    <div style="font-size:0.9rem;line-height:1.7;white-space:pre-line;color:#e0e0e0;">{{ s.experience }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Projects -->
+            {% if s.projects %}
+            <div class="col-md-6">
+                <div class="p-3 rounded h-100"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
+                    <small class="fw-bold d-block mb-2"
+                        style="color:#06b6d4;text-transform:uppercase;letter-spacing:1px;font-size:0.75rem;"><i
+                            class="fas fa-project-diagram me-1"></i>Projects</small>
+                    <div style="font-size:0.9rem;line-height:1.7;white-space:pre-line;color:#e0e0e0;">{{ s.projects }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Certifications -->
+            {% if s.certifications %}
+            <div class="col-md-6">
+                <div class="p-3 rounded h-100"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
+                    <small class="fw-bold d-block mb-2"
+                        style="color:#f472b6;text-transform:uppercase;letter-spacing:1px;font-size:0.75rem;"><i
+                            class="fas fa-certificate me-1"></i>Certifications</small>
+                    <div style="font-size:0.9rem;line-height:1.7;white-space:pre-line;color:#e0e0e0;">{{
+                        s.certifications }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Raw Text -->
+    <div id="rawView" style="display:none;">
+        <div class="p-3 rounded"
+            style="background:rgba(255,255,255,0.04);white-space:pre-wrap;font-family:'Courier New',monospace;font-size:0.85rem;line-height:1.6;max-height:500px;overflow-y:auto;">
+            {{ raw_text }}</div>
+    </div>
+</div>
+
+<!-- ==================== AI MODE ==================== -->
+{% elif mode == 'ai' %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-lg">
+            <div class="card-header d-flex justify-content-between align-items-center"
+                style="background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(5,150,105,0.3)) !important;">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-robot me-2" style="color:#6ee7b7;"></i>AI Resume Generator
+                </h5>
+                <button id="generateBtn" class="btn btn-success btn-sm" onclick="generateOptimizedResume()">
+                    <i class="fas fa-bolt me-1"></i>Generate Now
+                </button>
+            </div>
+            <div class="card-body p-4" style="min-height:400px;">
+
+                <div id="initialState" class="text-center py-5">
+                    <div
+                        style="width:80px;height:80px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">
+                        🤖</div>
+                    <h5 style="color:#6ee7b7;">Ready to Optimize</h5>
+                    <p class="text-muted">Click <strong style="color:#6ee7b7;">Generate Now</strong> to create an
+                        AI-optimized version tailored to the job description.</p>
+                    {% if not job_description %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No job description found. Please <a href="{{ url_for('match.jd_input') }}"
+                            style="color:inherit;font-weight:bold;">run matching first</a>.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div id="loadingState" class="text-center py-5" style="display:none;">
+                    <div class="spinner-border mb-3" style="color:#10b981;width:3rem;height:3rem;" role="status"></div>
+                    <h5 style="color:#6ee7b7;">Generating optimized resume...</h5>
+                    <p class="text-muted">Claude AI is analyzing and rewriting. This may take 15–30 seconds.</p>
+                </div>
+
+                <div id="errorState" class="alert alert-danger" style="display:none;">
+                    <i class="fas fa-exclamation-circle me-2"></i><span id="errorMessage"></span>
+                </div>
+
+                <div id="resultState" style="display:none;">
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard()">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="downloadResume()">
+                            <i class="fas fa-download me-1"></i>Download .txt
+                        </button>
+                    </div>
+                    <div id="optimizedContent" class="p-4 rounded"
+                        style="background:rgba(255,255,255,0.04);white-space:pre-line;font-size:0.9rem;line-height:1.7;max-height:65vh;overflow-y:auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Keyword donut chart
+    {% if mode == 'analyze' and kw %}
+    const ctx = document.getElementById('keywordDonut');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [{{ kw.total_matched }}, {{ kw.total_jd_keywords - kw.total_matched }}],
+            backgroundColor: ['#10b981', 'rgba(255,255,255,0.08)'],
+            borderWidth: 0,
+            hoverOffset: 4
+        }]
+        },
+    options: {
+        cutout: '72%',
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        animation: { animateRotate: true, duration: 1000 }
+    }
+    });
+}
+    {% endif %}
+
+    // Toggle raw/parsed
+    function toggleRaw() {
+        const parsed = document.getElementById('parsedView');
+        const raw = document.getElementById('rawView');
+        const label = document.getElementById('toggleLabel');
+        if (raw.style.display === 'none') {
+            raw.style.display = 'block'; parsed.style.display = 'none'; label.textContent = 'Parsed View';
+        } else {
+            raw.style.display = 'none'; parsed.style.display = 'block'; label.textContent = 'Raw Text';
+        }
+    }
+
+    // AI generation
+    let optimizedResumeText = '', downloadText = '';
+
+    function generateOptimizedResume() {
+        ['initialState', 'errorState', 'resultState'].forEach(id => document.getElementById(id).style.display = 'none');
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('generateBtn').disabled = true;
+
+        fetch('{{ url_for("resume_view.generate_resume") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: '{{ filename }}',
+                original_text: {{ raw_text| tojson }},
+    job_description: { { job_description | tojson } }
+        })
+    })
+    .then(r => r.json())
+        .then(data => {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+            if (data.success) {
+                optimizedResumeText = data.optimized_resume;
+                downloadText = data.download_text;
+                document.getElementById('optimizedContent').textContent = optimizedResumeText;
+                document.getElementById('resultState').style.display = 'block';
+            } else {
+                document.getElementById('errorMessage').textContent = data.error || 'Unknown error';
+                document.getElementById('errorState').style.display = 'block';
+            }
+        })
+        .catch(err => {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('errorMessage').textContent = 'Network error: ' + err.message;
+            document.getElementById('errorState').style.display = 'block';
+        });
+}
+
+    function copyToClipboard() {
+        navigator.clipboard.writeText(optimizedResumeText).then(() => {
+            const btn = event.target.closest('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            btn.classList.replace('btn-outline-primary', 'btn-success');
+            setTimeout(() => { btn.innerHTML = orig; btn.classList.replace('btn-success', 'btn-outline-primary'); }, 2000);
+        });
+    }
+
+    function downloadResume() {
+        const a = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(new Blob([downloadText], { type: 'text/plain' })),
+            download: 'optimized_{{ filename }}.txt'
+        });
+        a.click();
+    }
+</script>
+{% endblock %}

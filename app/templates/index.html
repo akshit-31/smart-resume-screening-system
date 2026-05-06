@@ -1,46 +1,209 @@
 {% extends "base.html" %}
-{% block title %}Upload Resumes{% endblock %}
+{% block title %}Smart Resume Screener{% endblock %}
 
 {% block content %}
+
+<!-- ===== WELCOME OVERLAY ===== -->
+<div id="welcome-overlay">
+    <!-- Floating particles -->
+    <div class="welcome-particles" id="particles"></div>
+
+    <!-- Content -->
+    <div style="position: relative; z-index: 1; padding: 2rem;">
+        <div class="welcome-logo">
+            <i class="fas fa-file-search"></i>
+        </div>
+
+        <h1 class="welcome-title">Smart Resume Screener</h1>
+        <p class="welcome-subtitle">AI-powered resume matching & optimization platform</p>
+
+        <div class="welcome-features">
+            <div class="welcome-feature-pill">
+                <i class="fas fa-bolt"></i> Instant Matching
+            </div>
+            <div class="welcome-feature-pill">
+                <i class="fas fa-brain"></i> AI Analysis
+            </div>
+            <div class="welcome-feature-pill">
+                <i class="fas fa-magic"></i> Resume Optimizer
+            </div>
+            <div class="welcome-feature-pill">
+                <i class="fas fa-trophy"></i> Smart Ranking
+            </div>
+        </div>
+
+        <button class="welcome-btn" onclick="dismissWelcome()">
+            <i class="fas fa-rocket me-2"></i>Get Started
+        </button>
+
+        <p style="color: #4a5568; font-size: 0.8rem; margin-top: 1.5rem;">
+            Click anywhere to continue
+        </p>
+    </div>
+</div>
+
+<!-- ===== MAIN PAGE ===== -->
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="fas fa-upload me-2"></i>Upload Resumes</h4>
+    <div class="col-lg-7">
+
+        <!-- Upload Card -->
+        <div class="card shadow-lg mb-4">
+            <div class="card-header">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-cloud-upload-alt me-2" style="color: #a78bfa;"></i>
+                    Upload Resumes
+                </h4>
             </div>
             <div class="card-body p-4">
-                <p class="text-muted mb-4">Upload one or more PDF resumes to get started. We'll match them against your job description.</p>
+                <form action="{{ url_for('upload.upload_resumes') }}" method="POST" enctype="multipart/form-data"
+                    id="uploadForm">
 
-                <form action="{{ url_for('upload.upload_resumes') }}" method="POST" enctype="multipart/form-data">
-                    <div class="mb-4">
-                        <label for="resumes" class="form-label fw-semibold">Select PDF Resumes</label>
-                        <input type="file" class="form-control" id="resumes" name="resumes"
-                               accept=".pdf" multiple required>
-                        <div class="form-text">You can select multiple PDF files at once (max 16MB each).</div>
+                    <!-- Drop Zone -->
+                    <div class="upload-zone mb-4" id="dropZone" onclick="document.getElementById('resumes').click()">
+                        <i class="fas fa-file-pdf"></i>
+                        <h5 style="color: #c4b5fd; margin-bottom: 0.5rem;">Drop PDF files here</h5>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">or click to browse files</p>
+                        <input type="file" id="resumes" name="resumes" accept=".pdf" multiple required
+                            style="display: none;" onchange="handleFileSelect(this.files)">
                     </div>
 
-                    <div id="file-preview" class="mb-3 d-none">
-                        <h6 class="text-muted">Selected Files:</h6>
-                        <ul id="file-list" class="list-group list-group-flush"></ul>
+                    <!-- File Preview -->
+                    <div id="file-preview" class="mb-4" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span style="color: #a78bfa; font-weight: 600; font-size: 0.9rem;">
+                                <i class="fas fa-paperclip me-1"></i>Selected Files
+                            </span>
+                            <span id="file-count" class="badge"
+                                style="background: rgba(102,126,234,0.3); color: #c4b5fd;"></span>
+                        </div>
+                        <div id="file-list"></div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload & Continue
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                        <i class="fas fa-rocket me-2"></i>Upload & Continue
                     </button>
                 </form>
             </div>
         </div>
 
-        <div class="card mt-4 border-0 bg-light">
-            <div class="card-body">
-                <h6 class="fw-bold"><i class="fas fa-info-circle text-primary me-2"></i>How It Works</h6>
-                <ol class="mb-0 text-muted">
-                    <li>Upload PDF resumes</li>
-                    <li>Enter the Job Description</li>
-                    <li>Get AI-powered ranked results</li>
-                </ol>
+        <!-- How It Works -->
+        <div class="mb-2" style="text-align: center;">
+            <span style="color: #718096; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px;">
+                How It Works
+            </span>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <i class="fas fa-upload mb-2" style="color: #a78bfa; font-size: 1.3rem;"></i>
+                    <p class="mb-0" style="font-size: 0.85rem; color: #a0aec0;">Upload PDF Resumes</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <i class="fas fa-file-alt mb-2" style="color: #a78bfa; font-size: 1.3rem;"></i>
+                    <p class="mb-0" style="font-size: 0.85rem; color: #a0aec0;">Enter Job Description</p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <i class="fas fa-trophy mb-2" style="color: #a78bfa; font-size: 1.3rem;"></i>
+                    <p class="mb-0" style="font-size: 0.85rem; color: #a0aec0;">Get Ranked Results</p>
+                </div>
             </div>
         </div>
+
     </div>
 </div>
+
+<script>
+    // ===== WELCOME OVERLAY =====
+    function createParticles() {
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 25; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.animationDuration = (6 + Math.random() * 10) + 's';
+            p.style.animationDelay = (Math.random() * 8) + 's';
+            p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+            p.style.opacity = (0.3 + Math.random() * 0.5).toString();
+            container.appendChild(p);
+        }
+    }
+
+    function dismissWelcome() {
+        const overlay = document.getElementById('welcome-overlay');
+        overlay.classList.add('hide');
+        setTimeout(() => overlay.style.display = 'none', 800);
+        sessionStorage.setItem('welcomed', '1');
+    }
+
+    // Auto-dismiss on click anywhere on overlay
+    document.getElementById('welcome-overlay').addEventListener('click', function (e) {
+        if (e.target !== document.querySelector('.welcome-btn')) {
+            dismissWelcome();
+        }
+    });
+
+    // Skip if already seen this session
+    window.addEventListener('DOMContentLoaded', function () {
+        createParticles();
+        if (sessionStorage.getItem('welcomed')) {
+            document.getElementById('welcome-overlay').style.display = 'none';
+        }
+    });
+
+    // ===== FILE UPLOAD =====
+    function handleFileSelect(files) {
+        const preview = document.getElementById('file-preview');
+        const list = document.getElementById('file-list');
+        const count = document.getElementById('file-count');
+
+        if (!files.length) { preview.style.display = 'none'; return; }
+
+        list.innerHTML = '';
+        Array.from(files).forEach(file => {
+            const size = (file.size / 1024).toFixed(1);
+            list.innerHTML += `
+            <div class="file-item">
+                <i class="fas fa-file-pdf" style="color: #f87171;"></i>
+                <span style="flex:1;">${file.name}</span>
+                <span style="color: #718096; font-size: 0.8rem;">${size} KB</span>
+            </div>`;
+        });
+
+        count.textContent = files.length + ' file' + (files.length > 1 ? 's' : '');
+        preview.style.display = 'block';
+    }
+
+    // Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const input = document.getElementById('resumes');
+        input.files = e.dataTransfer.files;
+        handleFileSelect(e.dataTransfer.files);
+    });
+
+    // Loading on submit
+    document.getElementById('uploadForm').addEventListener('submit', function () {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+        btn.disabled = true;
+    });
+</script>
+
 {% endblock %}

@@ -18,19 +18,29 @@ def upload_resumes():
         return redirect(url_for('upload.index'))
 
     files = request.files.getlist('resumes')
-    uploaded = []
 
-    for file in files:
-        if file and allowed_file(file.filename):
-            from werkzeug.utils import secure_filename
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            uploaded.append(filename)
+    # Filter valid files first
+    valid_files = [f for f in files if f and allowed_file(f.filename)]
 
-    if not uploaded:
+    if not valid_files:
         flash('No valid PDF files uploaded', 'error')
         return redirect(url_for('upload.index'))
+
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+
+    # Clear all existing PDFs before saving new ones
+    for existing_file in os.listdir(upload_folder):
+        if existing_file.endswith('.pdf'):
+            os.remove(os.path.join(upload_folder, existing_file))
+
+    # Save new files
+    uploaded = []
+    for file in valid_files:
+        from werkzeug.utils import secure_filename
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+        uploaded.append(filename)
 
     flash(f'{len(uploaded)} resume(s) uploaded successfully!', 'success')
     return redirect(url_for('match.jd_input'))

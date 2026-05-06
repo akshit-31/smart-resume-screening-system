@@ -11,11 +11,11 @@ def create_app():
     from app.routes.upload import upload_bp
     from app.routes.match import match_bp
     from app.routes.results import results_bp
+    from app.routes.resume_view import resume_view_bp
 
     app.register_blueprint(upload_bp)
     app.register_blueprint(match_bp)
     app.register_blueprint(results_bp)
+    app.register_blueprint(resume_view_bp)
 
     return app
-
-app = create_app()

@@ -3,7 +3,6 @@ import os
 from app.services.parser import extract_text_from_pdf
 from app.services.preprocessor import preprocess_text
 from app.services.tfidf_model import compute_tfidf_similarity
-from app.services.bert_model import compute_bert_similarity
 from app.services.ranker import rank_candidates
 
 match_bp = Blueprint('match', __name__)
@@ -15,9 +14,12 @@ def jd_input():
 @match_bp.route('/match', methods=['POST'])
 def run_matching():
     job_description = request.form.get('job_description', '').strip()
-    use_bert = False
+
     if not job_description:
         return render_template('jd_input.html', error='Please enter a job description.')
+
+    # Save JD in session for resume generator to use later
+    session['job_description'] = job_description
 
     upload_folder = current_app.config['UPLOAD_FOLDER']
     pdf_files = [f for f in os.listdir(upload_folder) if f.endswith('.pdf')]
@@ -35,15 +37,12 @@ def run_matching():
             clean_text = preprocess_text(raw_text)
 
             tfidf_score = compute_tfidf_similarity(jd_clean, clean_text)
-            bert_score = compute_bert_similarity(job_description, raw_text) if use_bert else None
-
-            final_score = bert_score if use_bert else tfidf_score
 
             results.append({
                 'filename': pdf_file,
                 'tfidf_score': round(tfidf_score * 100, 2),
-                'bert_score': round(bert_score * 100, 2) if bert_score else None,
-                'final_score': round(final_score * 100, 2),
+                'bert_score': None,
+                'final_score': round(tfidf_score * 100, 2),
                 'raw_text_preview': raw_text[:300] + '...' if len(raw_text) > 300 else raw_text
             })
         except Exception as e:

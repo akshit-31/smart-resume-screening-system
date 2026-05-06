@@ -10,59 +10,66 @@
 </div>
 
 {% if results %}
-    <div class="row">
-        {% for r in results %}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm h-100 {% if r.rank == 1 %}border-warning border-2{% endif %}">
-                <div class="card-header d-flex justify-content-between align-items-center
+<div class="row">
+    {% for r in results %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100 {% if r.rank == 1 %}border-warning border-2{% endif %}">
+            <div
+                class="card-header d-flex justify-content-between align-items-center
                     {% if r.rank == 1 %}bg-warning{% elif r.rank == 2 %}bg-secondary text-white{% elif r.rank == 3 %}bg-danger text-white{% else %}bg-light{% endif %}">
-                    <span class="fw-bold">
-                        {% if r.rank == 1 %}🥇{% elif r.rank == 2 %}🥈{% elif r.rank == 3 %}🥉{% else %}#{{ r.rank }}{% endif %}
-                        {{ r.filename }}
-                    </span>
-                    <span class="badge bg-dark fs-6">{{ r.final_score }}%</span>
+                <span class="fw-bold">
+                    {% if r.rank == 1 %}🥇{% elif r.rank == 2 %}🥈{% elif r.rank == 3 %}🥉{% else %}#{{ r.rank }}{%
+                    endif %}
+                    {{ r.filename }}
+                </span>
+                <span class="badge bg-dark fs-6">{{ r.final_score }}%</span>
+            </div>
+            <div class="card-body">
+                {% if r.error %}
+                <div class="alert alert-danger py-2 mb-2">
+                    <i class="fas fa-exclamation-triangle me-1"></i>{{ r.error }}
                 </div>
-                <div class="card-body">
-                    {% if r.error %}
-                        <div class="alert alert-danger py-2 mb-2">
-                            <i class="fas fa-exclamation-triangle me-1"></i>{{ r.error }}
+                {% else %}
+                <!-- Match Score -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span><i class="fas fa-chart-bar me-1"></i>Match Score</span>
+                        <span class="fw-bold">{{ r.tfidf_score }}%</span>
+                    </div>
+                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ r.tfidf_score }}%"
+                            aria-valuenow="{{ r.tfidf_score }}" aria-valuemin="0" aria-valuemax="100">
                         </div>
-                    {% else %}
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between small text-muted mb-1">
-                                <span>TF-IDF Score</span>
-                                <span>{{ r.tfidf_score }}%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-info" style="width: {{ r.tfidf_score }}%"></div>
-                            </div>
-                        </div>
-
-                        {% if r.bert_score %}
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between small text-muted mb-1">
-                                <span>BERT Score</span>
-                                <span>{{ r.bert_score }}%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-success" style="width: {{ r.bert_score }}%"></div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if r.raw_text_preview %}
-                        <details class="mt-2">
-                            <summary class="text-muted small" style="cursor: pointer;">Preview Text</summary>
-                            <p class="text-muted small mt-2 p-2 bg-light rounded">{{ r.raw_text_preview }}</p>
-                        </details>
-                        {% endif %}
-                    {% endif %}
+                    </div>
                 </div>
+
+                <!-- File Info -->
+                <div class="d-flex align-items-center text-muted small mb-3">
+                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                    <span>PDF Resume</span>
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-hashtag me-1"></i>
+                    <span>Rank #{{ r.rank }}</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=analyze"
+                        class="btn btn-primary btn-sm flex-fill">
+                        <i class="fas fa-eye me-1"></i>View & Analyze
+                    </a>
+                    <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=ai"
+                        class="btn btn-success btn-sm flex-fill">
+                        <i class="fas fa-magic me-1"></i>AI Resume
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
+</div>
 {% else %}
-    <div class="alert alert-warning">No results found. Please upload resumes and try again.</div>
+<div class="alert alert-warning">No results found. Please upload resumes and try again.</div>
 {% endif %}
 {% endblock %}
