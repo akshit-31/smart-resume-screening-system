@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, session, current_app, jsonify
 import os
-from app.services.parser import extract_text_from_pdf
-from app.services.resume_analyzer import advanced_resume_analysis
-from app.services.ai_resume_generator import generate_optimized_resume, format_resume_for_download
+from backend.services.parser import extract_text_from_pdf
+from backend.services.resume_analyzer import advanced_resume_analysis
+from backend.services.ai_resume_generator import generate_optimized_resume, format_resume_for_download
 
 resume_view_bp = Blueprint('resume_view', __name__)
 

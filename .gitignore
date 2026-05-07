@@ -20,8 +20,8 @@ instance/
 .env
 
 # Uploads (don't commit resumes)
-app/static/uploads/*.pdf
-!app/static/uploads/.gitkeep
+backend/static/uploads/*.pdf
+!backend/static/uploads/.gitkeep
 
 # Jupyter
 .ipynb_checkpoints/

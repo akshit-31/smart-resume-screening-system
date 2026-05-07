@@ -1,9 +1,9 @@
 from flask import Blueprint, request, redirect, url_for, render_template, session, current_app
 import os
-from app.services.parser import extract_text_from_pdf
-from app.services.preprocessor import preprocess_text
-from app.services.tfidf_model import compute_tfidf_similarity
-from app.services.ranker import rank_candidates
+from backend.services.parser import extract_text_from_pdf
+from backend.services.preprocessor import preprocess_text
+from backend.services.tfidf_model import compute_tfidf_similarity
+from backend.services.ranker import rank_candidates
 
 match_bp = Blueprint('match', __name__)
 

@@ -6,8 +6,8 @@ POST /roast/<filename> → call Claude, return JSON {roast, fixed}
 
 from flask import Blueprint, render_template, request, session, current_app, jsonify
 import os
-from app.services.parser import extract_text_from_pdf
-from app.services.roast_generator import generate_roast, format_roast_for_download
+from backend.services.parser import extract_text_from_pdf
+from backend.services.roast_generator import generate_roast, format_roast_for_download
 
 roast_bp = Blueprint('roast', __name__)
 

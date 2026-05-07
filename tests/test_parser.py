@@ -4,7 +4,7 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app.services.parser import extract_text_from_pdf
+from backend.services.parser import extract_text_from_pdf
 
 
 def test_parser_invalid_file():

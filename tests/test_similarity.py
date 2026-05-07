@@ -4,9 +4,9 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app.services.preprocessor import preprocess_text
-from app.services.tfidf_model import compute_tfidf_similarity
-from app.services.ranker import rank_candidates
+from backend.services.preprocessor import preprocess_text
+from backend.services.tfidf_model import compute_tfidf_similarity
+from backend.services.ranker import rank_candidates
 
 
 def test_preprocess_text_basic():
