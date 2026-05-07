@@ -377,7 +377,8 @@
                 <h5 class="mb-0 fw-bold">
                     <i class="fas fa-robot me-2" style="color:#6ee7b7;"></i>AI Resume Generator
                 </h5>
-                <button id="generateBtn" class="btn btn-success btn-sm" onclick="generateOptimizedResume()">
+                <button id="generateBtn" class="btn btn-success btn-sm" onclick="generateOptimizedResume()" {% if not
+                    job_description %}disabled title="Run matching first" {% endif %}>
                     <i class="fas fa-bolt me-1"></i>Generate Now
                 </button>
             </div>
@@ -398,129 +399,88 @@
                     </div>
                     {% endif %}
                 </div>
+                {% endif %}
 
-                <div id="loadingState" class="text-center py-5" style="display:none;">
-                    <div class="spinner-border mb-3" style="color:#10b981;width:3rem;height:3rem;" role="status"></div>
-                    <h5 style="color:#6ee7b7;">Generating optimized resume...</h5>
-                    <p class="text-muted">Claude AI is analyzing and rewriting. This may take 15–30 seconds.</p>
-                </div>
+                <!-- Scripts -->
+                <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+                <script>
+                    {% if mode == 'analyze' and kw %}
+                    const ctx = document.getElementById('keywordDonut');
+                    if (ctx) {
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: { datasets: [{ data: [{{ kw.total_matched }}, {{ kw.total_jd_keywords - kw.total_matched }}], backgroundColor: ['#10b981', 'rgba(255,255,255,0.08)'], borderWidth: 0
+                        }] },
+                    options: { cutout: '72%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+                        });
+                    }
+                    {% endif %}
 
-                <div id="errorState" class="alert alert-danger" style="display:none;">
-                    <i class="fas fa-exclamation-circle me-2"></i><span id="errorMessage"></span>
-                </div>
+                    function toggleRaw() {
+                        const parsed = document.getElementById('parsedView');
+                        const raw = document.getElementById('rawView');
+                        const label = document.getElementById('toggleLabel');
+                        if (raw.style.display === 'none') {
+                            raw.style.display = 'block'; parsed.style.display = 'none'; label.textContent = 'Parsed View';
+                        } else {
+                            raw.style.display = 'none'; parsed.style.display = 'block'; label.textContent = 'Raw Text';
+                        }
+                    }
 
-                <div id="resultState" style="display:none;">
-                    <div class="d-flex gap-2 mb-3">
-                        <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard()">
-                            <i class="fas fa-copy me-1"></i>Copy
-                        </button>
-                        <button class="btn btn-outline-success btn-sm" onclick="downloadResume()">
-                            <i class="fas fa-download me-1"></i>Download .txt
-                        </button>
-                    </div>
-                    <div id="optimizedContent" class="p-4 rounded"
-                        style="background:rgba(255,255,255,0.04);white-space:pre-line;font-size:0.9rem;line-height:1.7;max-height:65vh;overflow-y:auto;">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
+                    // Store values safely in JS variables
+                    let optimizedResumeText = '', downloadText = '';
+                    const _filename = {{ filename| tojson }};
+                    const _rawText = {{ raw_text| tojson }};
+                    const _jobDesc = {{ job_description| tojson }};
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-    // Keyword donut chart
-    {% if mode == 'analyze' and kw %}
-    const ctx = document.getElementById('keywordDonut');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [{{ kw.total_matched }}, {{ kw.total_jd_keywords - kw.total_matched }}],
-            backgroundColor: ['#10b981', 'rgba(255,255,255,0.08)'],
-            borderWidth: 0,
-            hoverOffset: 4
-        }]
-        },
-    options: {
-        cutout: '72%',
-            plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        animation: { animateRotate: true, duration: 1000 }
-    }
-    });
-}
-    {% endif %}
+                    function generateOptimizedResume() {
+                        ['initialState', 'errorState', 'resultState'].forEach(id => document.getElementById(id).style.display = 'none');
+                        document.getElementById('loadingState').style.display = 'block';
+                        document.getElementById('generateBtn').disabled = true;
 
-    // Toggle raw/parsed
-    function toggleRaw() {
-        const parsed = document.getElementById('parsedView');
-        const raw = document.getElementById('rawView');
-        const label = document.getElementById('toggleLabel');
-        if (raw.style.display === 'none') {
-            raw.style.display = 'block'; parsed.style.display = 'none'; label.textContent = 'Parsed View';
-        } else {
-            raw.style.display = 'none'; parsed.style.display = 'block'; label.textContent = 'Raw Text';
-        }
-    }
+                        fetch('{{ url_for("resume_view.generate_resume") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ filename: _filename, original_text: _rawText, job_description: _jobDesc })
+                        })
+                            .then(r => r.json())
+                            .then(data => {
+                                document.getElementById('loadingState').style.display = 'none';
+                                document.getElementById('generateBtn').disabled = false;
+                                if (data.success) {
+                                    optimizedResumeText = data.optimized_resume;
+                                    downloadText = data.download_text;
+                                    document.getElementById('optimizedContent').textContent = optimizedResumeText;
+                                    document.getElementById('resultState').style.display = 'block';
+                                } else {
+                                    document.getElementById('errorMessage').textContent = data.error || 'Unknown error';
+                                    document.getElementById('errorState').style.display = 'block';
+                                }
+                            })
+                            .catch(err => {
+                                document.getElementById('loadingState').style.display = 'none';
+                                document.getElementById('generateBtn').disabled = false;
+                                document.getElementById('errorMessage').textContent = 'Network error: ' + err.message;
+                                document.getElementById('errorState').style.display = 'block';
+                            });
+                    }
 
-    // AI generation
-    let optimizedResumeText = '', downloadText = '';
+                    function copyToClipboard() {
+                        navigator.clipboard.writeText(optimizedResumeText).then(() => {
+                            const btn = event.target.closest('button');
+                            const orig = btn.innerHTML;
+                            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+                            btn.classList.replace('btn-outline-primary', 'btn-success');
+                            setTimeout(() => { btn.innerHTML = orig; btn.classList.replace('btn-success', 'btn-outline-primary'); }, 2000);
+                        });
+                    }
 
-    function generateOptimizedResume() {
-        ['initialState', 'errorState', 'resultState'].forEach(id => document.getElementById(id).style.display = 'none');
-        document.getElementById('loadingState').style.display = 'block';
-        document.getElementById('generateBtn').disabled = true;
-
-        fetch('{{ url_for("resume_view.generate_resume") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                filename: '{{ filename }}',
-                original_text: {{ raw_text| tojson }},
-    job_description: { { job_description | tojson } }
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('generateBtn').disabled = false;
-            if (data.success) {
-                optimizedResumeText = data.optimized_resume;
-                downloadText = data.download_text;
-                document.getElementById('optimizedContent').textContent = optimizedResumeText;
-                document.getElementById('resultState').style.display = 'block';
-            } else {
-                document.getElementById('errorMessage').textContent = data.error || 'Unknown error';
-                document.getElementById('errorState').style.display = 'block';
-            }
-        })
-        .catch(err => {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('generateBtn').disabled = false;
-            document.getElementById('errorMessage').textContent = 'Network error: ' + err.message;
-            document.getElementById('errorState').style.display = 'block';
-        });
-    }
-
-    function copyToClipboard() {
-        navigator.clipboard.writeText(optimizedResumeText).then(() => {
-            const btn = event.target.closest('button');
-            const orig = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
-            btn.classList.replace('btn-outline-primary', 'btn-success');
-            setTimeout(() => { btn.innerHTML = orig; btn.classList.replace('btn-success', 'btn-outline-primary'); }, 2000);
-        });
-    }
-
-    function downloadResume() {
-        const a = Object.assign(document.createElement('a'), {
-            href: URL.createObjectURL(new Blob([downloadText], { type: 'text/plain' })),
-            download: 'optimized_{{ filename }}.txt'
-        });
-        a.click();
-    }
-</script>
-{% endblock %}
+                    function downloadResume() {
+                        const a = Object.assign(document.createElement('a'), {
+                            href: URL.createObjectURL(new Blob([downloadText], { type: 'text/plain' })),
+                            download: 'optimized_' + _filename + '.txt'
+                        });
+                        a.click();
+                    }
+                </script>
+                {% endblock %}
