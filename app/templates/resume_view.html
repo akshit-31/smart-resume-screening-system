@@ -481,9 +481,9 @@
                 filename: '{{ filename }}',
                 original_text: {{ raw_text| tojson }},
     job_description: { { job_description | tojson } }
+            })
         })
-    })
-    .then(r => r.json())
+        .then(r => r.json())
         .then(data => {
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('generateBtn').disabled = false;
@@ -503,7 +503,7 @@
             document.getElementById('errorMessage').textContent = 'Network error: ' + err.message;
             document.getElementById('errorState').style.display = 'block';
         });
-}
+    }
 
     function copyToClipboard() {
         navigator.clipboard.writeText(optimizedResumeText).then(() => {
