@@ -16,7 +16,7 @@ def _call_gemini(prompt: str) -> str:
     client  = genai.Client(api_key=api_key)
 
     # Try models in order of preference
-    models = ['gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-2.0-flash']
+    models = ['gemini-2.5-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite']
     last_error = None
 
     for model in models:
@@ -32,7 +32,7 @@ def _call_gemini(prompt: str) -> str:
             return response.text
         except Exception as e:
             last_error = e
-            if '429' in str(e) or 'RESOURCE_EXHAUSTED' in str(e):
+            if '429' in str(e) or 'RESOURCE_EXHAUSTED' in str(e) or '503' in str(e) or 'UNAVAILABLE' in str(e):
                 continue  # try next model
             raise e
 
@@ -75,6 +75,8 @@ Return ONLY the optimized resume text, without any additional commentary or expl
         error_msg = str(e)
         if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg:
             return {'success': False, 'error': 'Gemini API quota exceeded. Please wait a minute and try again.'}
+        if '503' in error_msg or 'UNAVAILABLE' in error_msg:
+            return {'success': False, 'error': 'Gemini is temporarily overloaded. Please click Try Again in a few seconds.'}
         if 'API_KEY_INVALID' in error_msg or 'invalid' in error_msg.lower():
             return {'success': False, 'error': 'Invalid GEMINI_API_KEY. Please check your key.'}
         return {'success': False, 'error': f'Gemini API error: {error_msg}'}
