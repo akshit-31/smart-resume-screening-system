@@ -7,10 +7,40 @@ import os
 from typing import Dict
 
 
+def _call_gemini(prompt: str) -> str:
+    """Call Gemini API and return text response"""
+    from google import genai
+    from google.genai import types
+
+    api_key = os.getenv('GEMINI_API_KEY')
+    client  = genai.Client(api_key=api_key)
+
+    # Try models in order of preference
+    models = ['gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-2.0-flash']
+    last_error = None
+
+    for model in models:
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    max_output_tokens=4096,
+                    temperature=0.7,
+                )
+            )
+            return response.text
+        except Exception as e:
+            last_error = e
+            if '429' in str(e) or 'RESOURCE_EXHAUSTED' in str(e):
+                continue  # try next model
+            raise e
+
+    raise last_error
+
+
 def generate_optimized_resume(original_resume: str, job_description: str) -> Dict[str, any]:
-    """
-    Generate an optimized resume using Google Gemini API (free tier)
-    """
+    """Generate an optimized resume using Google Gemini API (free tier)"""
     api_key = os.getenv('GEMINI_API_KEY')
 
     if not api_key:
@@ -38,31 +68,15 @@ JOB DESCRIPTION:
 Return ONLY the optimized resume text, without any additional commentary or explanations."""
 
     try:
-        import google.generativeai as genai
-
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=4096,
-                temperature=0.7,
-            )
-        )
-
-        optimized_resume = response.text
-        return {
-            'success': True,
-            'optimized_resume': optimized_resume
-        }
+        optimized_resume = _call_gemini(prompt)
+        return {'success': True, 'optimized_resume': optimized_resume}
 
     except Exception as e:
         error_msg = str(e)
+        if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg:
+            return {'success': False, 'error': 'Gemini API quota exceeded. Please wait a minute and try again.'}
         if 'API_KEY_INVALID' in error_msg or 'invalid' in error_msg.lower():
             return {'success': False, 'error': 'Invalid GEMINI_API_KEY. Please check your key.'}
-        elif 'quota' in error_msg.lower():
-            return {'success': False, 'error': 'Gemini API quota exceeded. Try again later.'}
         return {'success': False, 'error': f'Gemini API error: {error_msg}'}
 
 

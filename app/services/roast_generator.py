@@ -7,10 +7,40 @@ import os
 from typing import Dict
 
 
+def _call_gemini(prompt: str) -> str:
+    """Call Gemini API and return text response"""
+    from google import genai
+    from google.genai import types
+
+    api_key = os.getenv('GEMINI_API_KEY')
+    client  = genai.Client(api_key=api_key)
+
+    # Try models in order of preference
+    models = ['gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-2.0-flash']
+    last_error = None
+
+    for model in models:
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    max_output_tokens=4096,
+                    temperature=0.9,
+                )
+            )
+            return response.text
+        except Exception as e:
+            last_error = e
+            if '429' in str(e) or 'RESOURCE_EXHAUSTED' in str(e):
+                continue  # try next model
+            raise e
+
+    raise last_error
+
+
 def generate_roast(resume_text: str, job_description: str) -> Dict[str, any]:
-    """
-    Generate a brutal but funny roast of the resume, then provide a fixed version
-    """
+    """Generate a brutal but funny roast of the resume, then provide a fixed version"""
     api_key = os.getenv('GEMINI_API_KEY')
 
     if not api_key:
@@ -62,20 +92,7 @@ Format your response EXACTLY like this:
 [Complete rewritten resume here]"""
 
     try:
-        import google.generativeai as genai
-
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=4096,
-                temperature=0.9,
-            )
-        )
-
-        full_response = response.text
+        full_response = _call_gemini(prompt)
 
         # Split roast and fixed version
         if '---FIXED VERSION---' in full_response:
@@ -90,18 +107,14 @@ Format your response EXACTLY like this:
             roast_text = full_response
             fixed_text = "Could not parse fixed version. Please try again."
 
-        return {
-            'success': True,
-            'roast': roast_text,
-            'fixed': fixed_text
-        }
+        return {'success': True, 'roast': roast_text, 'fixed': fixed_text}
 
     except Exception as e:
         error_msg = str(e)
+        if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg:
+            return {'success': False, 'error': 'Gemini API quota exceeded on all models. Please wait a minute and try again.'}
         if 'API_KEY_INVALID' in error_msg or 'invalid' in error_msg.lower():
             return {'success': False, 'error': 'Invalid GEMINI_API_KEY. Please check your key.'}
-        elif 'quota' in error_msg.lower():
-            return {'success': False, 'error': 'Gemini API quota exceeded. Try again later.'}
         return {'success': False, 'error': f'Gemini API error: {error_msg}'}
 
 
