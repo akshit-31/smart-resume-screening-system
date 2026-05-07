@@ -16,11 +16,6 @@
         <small class="text-muted"><i class="fas fa-file-pdf text-danger me-1"></i>{{ filename }}</small>
     </div>
     <div class="d-flex gap-2">
-        {% if mode == 'ai' %}
-        <a href="?mode=analyze" class="btn btn-outline-primary btn-sm">
-            <i class="fas fa-chart-bar me-1"></i>View Analysis
-        </a>
-        {% endif %}
         <a href="{{ url_for('results.show_results') }}" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left me-1"></i>Back
         </a>
@@ -63,7 +58,7 @@
         </div>
     </div>
 
-    <!-- Experience -->
+    <!-- Experience / Education -->
     <div class="col-md-3 col-6">
         <div class="card text-center p-3 h-100" style="border:1px solid rgba(245,158,11,0.3);">
             <div
@@ -89,10 +84,10 @@
     </div>
 </div>
 
-<!-- Row 2: ATS Breakdown Chart + Keyword Match -->
+<!-- Row 2: ATS Breakdown + Keyword Chart -->
 <div class="row g-3 mb-4">
 
-    <!-- ATS Component Chart -->
+    <!-- ATS Component Bars -->
     <div class="col-lg-6">
         <div class="card p-4 h-100">
             <h6 class="fw-bold mb-3" style="color:#a78bfa;">
@@ -123,14 +118,13 @@
         </div>
     </div>
 
-    <!-- Keyword Analysis -->
+    <!-- Keyword Analysis + Donut -->
     <div class="col-lg-6">
         <div class="card p-4 h-100">
             <h6 class="fw-bold mb-3" style="color:#10b981;">
                 <i class="fas fa-key me-2"></i>Keyword Analysis
             </h6>
             {% if kw %}
-            <!-- Donut-style match indicator -->
             <div class="text-center mb-3">
                 <div style="position:relative;display:inline-block;">
                     <canvas id="keywordDonut" width="120" height="120"></canvas>
@@ -140,8 +134,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Matched keywords -->
             {% if kw.matched_keywords %}
             <div class="mb-2">
                 <small style="color:#6ee7b7;font-weight:600;"><i class="fas fa-check-circle me-1"></i>Matched ({{
@@ -155,8 +147,6 @@
                 </div>
             </div>
             {% endif %}
-
-            <!-- Missing keywords -->
             {% if kw.missing_keywords %}
             <div>
                 <small style="color:#fca5a5;font-weight:600;"><i class="fas fa-times-circle me-1"></i>Missing ({{
@@ -180,7 +170,7 @@
     </div>
 </div>
 
-<!-- Row 3: Strengths & Weaknesses + Skills -->
+<!-- Row 3: Strengths & Weaknesses + Skills by Category -->
 <div class="row g-3 mb-4">
 
     <!-- Strengths & Weaknesses -->
@@ -193,8 +183,8 @@
             <div class="mb-3">
                 <small class="fw-bold" style="color:#6ee7b7;"><i class="fas fa-thumbs-up me-1"></i>Strengths</small>
                 <ul class="mt-2 mb-0 ps-3">
-                    {% for s in analysis.strengths %}
-                    <li style="color:#a0aec0;font-size:0.88rem;margin-bottom:0.3rem;">{{ s }}</li>
+                    {% for strength in analysis.strengths %}
+                    <li style="color:#a0aec0;font-size:0.88rem;margin-bottom:0.3rem;">{{ strength }}</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -204,8 +194,8 @@
                 <small class="fw-bold" style="color:#fca5a5;"><i
                         class="fas fa-exclamation-triangle me-1"></i>Improve</small>
                 <ul class="mt-2 mb-0 ps-3">
-                    {% for w in analysis.weaknesses %}
-                    <li style="color:#a0aec0;font-size:0.88rem;margin-bottom:0.3rem;">{{ w }}</li>
+                    {% for weakness in analysis.weaknesses %}
+                    <li style="color:#a0aec0;font-size:0.88rem;margin-bottom:0.3rem;">{{ weakness }}</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -359,16 +349,18 @@
         </div>
     </div>
 
-    <!-- Raw Text -->
+    <!-- Raw Text Toggle -->
     <div id="rawView" style="display:none;">
         <div class="p-3 rounded"
             style="background:rgba(255,255,255,0.04);white-space:pre-wrap;font-family:'Courier New',monospace;font-size:0.85rem;line-height:1.6;max-height:500px;overflow-y:auto;">
-            {{ raw_text }}</div>
+            {{ raw_text }}
+        </div>
     </div>
 </div>
 
 <!-- ==================== AI MODE ==================== -->
 {% elif mode == 'ai' %}
+
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card shadow-lg">
@@ -384,10 +376,12 @@
             </div>
             <div class="card-body p-4" style="min-height:400px;">
 
+                <!-- Initial State -->
                 <div id="initialState" class="text-center py-5">
                     <div
                         style="width:80px;height:80px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">
-                        🤖</div>
+                        🤖
+                    </div>
                     <h5 style="color:#6ee7b7;">Ready to Optimize</h5>
                     <p class="text-muted">Click <strong style="color:#6ee7b7;">Generate Now</strong> to create an
                         AI-optimized version tailored to the job description.</p>
@@ -399,88 +393,180 @@
                     </div>
                     {% endif %}
                 </div>
-                {% endif %}
 
-                <!-- Scripts -->
-                <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-                <script>
-                    {% if mode == 'analyze' and kw %}
-                    const ctx = document.getElementById('keywordDonut');
-                    if (ctx) {
-                        new Chart(ctx, {
-                            type: 'doughnut',
-                            data: { datasets: [{ data: [{{ kw.total_matched }}, {{ kw.total_jd_keywords - kw.total_matched }}], backgroundColor: ['#10b981', 'rgba(255,255,255,0.08)'], borderWidth: 0
-                        }] },
-                    options: { cutout: '72%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
-                        });
-                    }
-                    {% endif %}
+                <!-- Loading State -->
+                <div id="loadingState" class="text-center py-5" style="display:none;">
+                    <div class="spinner-border mb-3" style="width:3rem;height:3rem;color:#6ee7b7;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 style="color:#6ee7b7;">Generating...</h5>
+                    <p class="text-muted">The AI is optimizing your resume. This may take a moment.</p>
+                </div>
 
-                    function toggleRaw() {
-                        const parsed = document.getElementById('parsedView');
-                        const raw = document.getElementById('rawView');
-                        const label = document.getElementById('toggleLabel');
-                        if (raw.style.display === 'none') {
-                            raw.style.display = 'block'; parsed.style.display = 'none'; label.textContent = 'Parsed View';
-                        } else {
-                            raw.style.display = 'none'; parsed.style.display = 'block'; label.textContent = 'Raw Text';
-                        }
-                    }
+                <!-- Error State -->
+                <div id="errorState" class="py-4" style="display:none;">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-outline-secondary btn-sm"
+                            onclick="document.getElementById('errorState').style.display='none';document.getElementById('initialState').style.display='block';">
+                            <i class="fas fa-redo me-1"></i>Try Again
+                        </button>
+                    </div>
+                </div>
 
-                    // Store values safely in JS variables
-                    let optimizedResumeText = '', downloadText = '';
-                    const _filename = {{ filename| tojson }};
-                    const _rawText = {{ raw_text| tojson }};
-                    const _jobDesc = {{ job_description| tojson }};
+                <!-- Result State -->
+                <div id="resultState" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0" style="color:#6ee7b7;">
+                            <i class="fas fa-check-circle me-2"></i>Optimized Resume Ready
+                        </h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard()">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="downloadResume()">
+                                <i class="fas fa-download me-1"></i>Download
+                            </button>
+                        </div>
+                    </div>
+                    <div id="optimizedContent"
+                        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.5rem;white-space:pre-wrap;font-family:'Courier New',monospace;font-size:0.85rem;line-height:1.7;color:#e0e0e0;max-height:600px;overflow-y:auto;">
+                    </div>
+                </div>
 
-                    function generateOptimizedResume() {
-                        ['initialState', 'errorState', 'resultState'].forEach(id => document.getElementById(id).style.display = 'none');
-                        document.getElementById('loadingState').style.display = 'block';
-                        document.getElementById('generateBtn').disabled = true;
+            </div><!-- /.card-body -->
+        </div><!-- /.card -->
+    </div><!-- /.col -->
+</div><!-- /.row -->
 
-                        fetch('{{ url_for("resume_view.generate_resume") }}', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ filename: _filename, original_text: _rawText, job_description: _jobDesc })
-                        })
-                            .then(r => r.json())
-                            .then(data => {
-                                document.getElementById('loadingState').style.display = 'none';
-                                document.getElementById('generateBtn').disabled = false;
-                                if (data.success) {
-                                    optimizedResumeText = data.optimized_resume;
-                                    downloadText = data.download_text;
-                                    document.getElementById('optimizedContent').textContent = optimizedResumeText;
-                                    document.getElementById('resultState').style.display = 'block';
-                                } else {
-                                    document.getElementById('errorMessage').textContent = data.error || 'Unknown error';
-                                    document.getElementById('errorState').style.display = 'block';
-                                }
-                            })
-                            .catch(err => {
-                                document.getElementById('loadingState').style.display = 'none';
-                                document.getElementById('generateBtn').disabled = false;
-                                document.getElementById('errorMessage').textContent = 'Network error: ' + err.message;
-                                document.getElementById('errorState').style.display = 'block';
-                            });
-                    }
+{% endif %}
+<!-- ==================== END IF/ELIF BLOCK ==================== -->
 
-                    function copyToClipboard() {
-                        navigator.clipboard.writeText(optimizedResumeText).then(() => {
-                            const btn = event.target.closest('button');
-                            const orig = btn.innerHTML;
-                            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
-                            btn.classList.replace('btn-outline-primary', 'btn-success');
-                            setTimeout(() => { btn.innerHTML = orig; btn.classList.replace('btn-success', 'btn-outline-primary'); }, 2000);
-                        });
-                    }
+{% endblock %}
 
-                    function downloadResume() {
-                        const a = Object.assign(document.createElement('a'), {
-                            href: URL.createObjectURL(new Blob([downloadText], { type: 'text/plain' })),
-                            download: 'optimized_' + _filename + '.txt'
-                        });
-                        a.click();
-                    }
-                </script>
-                {% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // ── Keyword donut chart (analyze mode only) ──────────────────────────────
+    {% if mode == 'analyze' and kw %}
+    (function () {
+        const ctx = document.getElementById('keywordDonut');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [{{ kw.total_matched }}, {{ kw.total_jd_keywords - kw.total_matched }}],
+                backgroundColor: ['#10b981', 'rgba(255,255,255,0.08)'],
+                borderWidth: 0
+            }]
+                },
+        options: {
+            cutout: '72%',
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
+    });
+        }
+    }) ();
+    {% endif %}
+
+    // ── Raw text toggle (analyze mode only) ──────────────────────────────────
+    function toggleRaw() {
+        const parsed = document.getElementById('parsedView');
+        const raw = document.getElementById('rawView');
+        const label = document.getElementById('toggleLabel');
+        if (raw.style.display === 'none') {
+            raw.style.display = 'block';
+            parsed.style.display = 'none';
+            label.textContent = 'Parsed View';
+        } else {
+            raw.style.display = 'none';
+            parsed.style.display = 'block';
+            label.textContent = 'Raw Text';
+        }
+    }
+
+    // ── Shared JS variables ───────────────────────────────────────────────────
+    const _filename = {{ filename| tojson }};
+    const _rawText = {{ raw_text| tojson }};
+    const _jobDesc = {{ job_description| tojson }};
+
+    let optimizedResumeText = '';
+    let downloadText = '';
+
+    // ── AI generation (ai mode only) ─────────────────────────────────────────
+    function generateOptimizedResume() {
+        ['initialState', 'errorState', 'resultState'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        const loadingEl = document.getElementById('loadingState');
+        if (loadingEl) loadingEl.style.display = 'block';
+
+        const generateBtn = document.getElementById('generateBtn');
+        if (generateBtn) generateBtn.disabled = true;
+
+        fetch('{{ url_for("resume_view.generate_resume") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: _filename,
+                original_text: _rawText,
+                job_description: _jobDesc
+            })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (generateBtn) generateBtn.disabled = false;
+
+                if (data.success) {
+                    optimizedResumeText = data.optimized_resume;
+                    downloadText = data.download_text;
+                    const content = document.getElementById('optimizedContent');
+                    if (content) content.textContent = optimizedResumeText;
+                    const resultEl = document.getElementById('resultState');
+                    if (resultEl) resultEl.style.display = 'block';
+                } else {
+                    const msgEl = document.getElementById('errorMessage');
+                    if (msgEl) msgEl.textContent = data.error || 'Unknown error occurred.';
+                    const errorEl = document.getElementById('errorState');
+                    if (errorEl) errorEl.style.display = 'block';
+                }
+            })
+            .catch(function (err) {
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (generateBtn) generateBtn.disabled = false;
+                const msgEl = document.getElementById('errorMessage');
+                if (msgEl) msgEl.textContent = 'Network error: ' + err.message;
+                const errorEl = document.getElementById('errorState');
+                if (errorEl) errorEl.style.display = 'block';
+            });
+    }
+
+    function copyToClipboard() {
+        navigator.clipboard.writeText(optimizedResumeText).then(function () {
+            const btn = event.target.closest('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            btn.classList.replace('btn-outline-primary', 'btn-success');
+            setTimeout(function () {
+                btn.innerHTML = orig;
+                btn.classList.replace('btn-success', 'btn-outline-primary');
+            }, 2000);
+        });
+    }
+
+    function downloadResume() {
+        const blob = new Blob([downloadText], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'optimized_' + _filename + '.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+</script>
+{% endblock %}
