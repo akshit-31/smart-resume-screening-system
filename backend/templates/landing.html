@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}ResumeIQ — AI-Powered Resume Screening{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <!-- Left: Text -->
+            <div class="col-lg-6">
+                <div class="hero-tag">
+                    <i class="fas fa-bolt"></i> AI-Powered Resume Screening
+                </div>
+                <h1 class="hero-title">
+                    Find the Perfect Candidate,
+                    <span class="gradient-text">Instantly.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Upload resumes, enter your job description, and get AI-ranked candidates in seconds.
+                    With brutally honest feedback and AI-optimized rewrites built in.
+                </p>
+                <div class="hero-buttons">
+                    <a href="{{ url_for('upload.app_page') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Start Screening
+                    </a>
+                    <a href="#how-it-works" class="btn btn-outline-secondary btn-lg">
+                        How it works <i class="fas fa-arrow-down ms-2"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right: App Mockup -->
+            <div class="col-lg-6">
+                <div class="hero-mockup">
+                    <div class="mockup-titlebar">
+                        <span class="mockup-dot red"></span>
+                        <span class="mockup-dot yellow"></span>
+                        <span class="mockup-dot green"></span>
+                        <span class="mockup-url">resumeiq · Ranked Candidates</span>
+                    </div>
+                    <div class="mockup-body">
+                        <div class="mockup-section-title">
+                            <i class="fas fa-trophy" style="color:#f59e0b;"></i>
+                            3 candidates ranked by match score
+                        </div>
+
+                        <div class="mock-card top">
+                            <div class="mock-rank">🥇</div>
+                            <div class="mock-info">
+                                <div class="mock-name">alex_chen.pdf</div>
+                                <div class="mock-bar-wrap">
+                                    <div class="mock-bar" style="--w:94%;"></div>
+                                </div>
+                            </div>
+                            <div class="mock-score">94%</div>
+                        </div>
+
+                        <div class="mock-card">
+                            <div class="mock-rank">🥈</div>
+                            <div class="mock-info">
+                                <div class="mock-name">sarah_kim.pdf</div>
+                                <div class="mock-bar-wrap">
+                                    <div class="mock-bar" style="--w:81%;background:linear-gradient(135deg,#10b981,#059669);"></div>
+                                </div>
+                            </div>
+                            <div class="mock-score" style="color:#34d399;">81%</div>
+                        </div>
+
+                        <div class="mock-card">
+                            <div class="mock-rank">🥉</div>
+                            <div class="mock-info">
+                                <div class="mock-name">john_doe.pdf</div>
+                                <div class="mock-bar-wrap">
+                                    <div class="mock-bar" style="--w:62%;background:linear-gradient(135deg,#f59e0b,#d97706);"></div>
+                                </div>
+                            </div>
+                            <div class="mock-score" style="color:#fbbf24;">62%</div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3 flex-wrap">
+                            <span style="background:rgba(124,108,244,0.14);border:1px solid rgba(124,108,244,0.3);border-radius:6px;padding:0.3rem 0.7rem;font-size:0.75rem;color:#a78bfa;"><i class="fas fa-eye me-1"></i>Analyze</span>
+                            <span style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:6px;padding:0.3rem 0.7rem;font-size:0.75rem;color:#34d399;"><i class="fas fa-magic me-1"></i>AI Resume</span>
+                            <span style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:6px;padding:0.3rem 0.7rem;font-size:0.75rem;color:#f87171;"><i class="fas fa-fire me-1"></i>Roast</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ===== STATS BAR ===== -->
+<div class="stats-bar">
+    <div class="container">
+        <div class="row g-3 justify-content-center text-center">
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">TF-IDF</div>
+                    <div class="stat-label">Similarity Scoring</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">Gemini</div>
+                    <div class="stat-label">AI Engine</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">&lt;5s</div>
+                    <div class="stat-label">Average Match Time</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">Free</div>
+                    <div class="stat-label">No Sign-up Needed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FEATURES ===== -->
+<section class="section" id="features">
+    <div class="container text-center">
+        <div class="section-tag">Features</div>
+        <h2 class="section-title">Everything you need to hire smarter</h2>
+        <p class="section-subtitle">
+            From bulk resume upload to AI-powered analysis, every step of your hiring process — covered.
+        </p>
+        <div class="row g-4 text-start">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon purple"><i class="fas fa-brain"></i></div>
+                    <div class="feature-title">Smart Matching</div>
+                    <p class="feature-desc">TF-IDF cosine similarity ranks every resume against your job description with precision. Get relevance scores from 0–100 instantly.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon red"><i class="fas fa-fire"></i></div>
+                    <div class="feature-title">AI Resume Roast</div>
+                    <p class="feature-desc">Let Gemini AI brutally critique each resume against the JD — honest, specific, and actionable feedback delivered in seconds.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon green"><i class="fas fa-magic"></i></div>
+                    <div class="feature-title">Resume Optimizer</div>
+                    <p class="feature-desc">AI rewrites and tailors your resume to better match any role — without fabricating experience. Real improvements only.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon blue"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="feature-title">Bulk PDF Upload</div>
+                    <p class="feature-desc">Upload dozens of resumes at once. Extraction, cleaning, and preprocessing is all handled automatically with PyMuPDF.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon orange"><i class="fas fa-trophy"></i></div>
+                    <div class="feature-title">Instant Ranking</div>
+                    <p class="feature-desc">Candidates are automatically sorted by relevance score. See your strongest applicants first — no manual reading needed.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon pink"><i class="fas fa-chart-bar"></i></div>
+                    <div class="feature-title">Deep Analysis</div>
+                    <p class="feature-desc">ATS scoring, keyword gap analysis, skill categorization, and section detection — all visualized in a single dashboard view.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section" id="how-it-works" style="background:rgba(255,255,255,0.015);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="container text-center">
+        <div class="section-tag">Process</div>
+        <h2 class="section-title">How it works</h2>
+        <p class="section-subtitle">
+            Three steps from raw PDFs to ranked candidates with full AI feedback.
+        </p>
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <div class="step-box">
+                    <div class="step-num">1</div>
+                    <span class="step-icon">📄</span>
+                    <div class="step-title">Upload Resumes</div>
+                    <p class="step-desc">Drag and drop your PDF resumes. Bulk upload supported — no limit on how many candidates you add.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-box">
+                    <div class="step-num">2</div>
+                    <span class="step-icon">📝</span>
+                    <div class="step-title">Enter Job Description</div>
+                    <p class="step-desc">Paste the full job description. The more detail you include, the more accurate the matching becomes.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-box">
+                    <div class="step-num">3</div>
+                    <span class="step-icon">🏆</span>
+                    <div class="step-title">Get Ranked Results</div>
+                    <p class="step-desc">Candidates are ranked by relevance. Click any result for deep analysis, AI feedback, or an optimized rewrite.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== WHO IT'S FOR ===== -->
+<section class="section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-tag">Use Cases</div>
+            <h2 class="section-title">Built for everyone in hiring</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="audience-card" style="border-color:rgba(124,108,244,0.2);">
+                    <span class="audience-icon">🎯</span>
+                    <div class="audience-title">For Recruiters</div>
+                    <p class="audience-sub">Slash the time you spend manually reading resumes.</p>
+                    <ul class="audience-list">
+                        <li>Upload all applicant resumes in one batch</li>
+                        <li>Instantly see who matches best for the role</li>
+                        <li>Use AI roast to spot weak candidates quickly</li>
+                        <li>Focus your time on the top 10%, not all 100%</li>
+                        <li>Export AI feedback for structured rejection notes</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="audience-card" style="border-color:rgba(16,185,129,0.2);">
+                    <span class="audience-icon">🚀</span>
+                    <div class="audience-title">For Job Seekers</div>
+                    <p class="audience-sub">Know exactly why you're being rejected — and fix it.</p>
+                    <ul class="audience-list">
+                        <li>Get brutally honest AI feedback on your resume</li>
+                        <li>See which keywords from the JD you're missing</li>
+                        <li>Get an AI-optimized version tailored to any role</li>
+                        <li>Check your ATS score before submitting</li>
+                        <li>Understand your strengths and weak spots clearly</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+    <div class="cta-glow"></div>
+    <div class="container">
+        <h2 class="cta-title">Ready to hire <span class="gradient-text">smarter?</span></h2>
+        <p class="cta-subtitle">No sign-up needed. Upload, match, and rank — completely free.</p>
+        <a href="{{ url_for('upload.app_page') }}" class="btn btn-primary btn-lg px-5">
+            <i class="fas fa-rocket me-2"></i>Start Screening Now
+        </a>
+    </div>
+</section>
+
+{% endblock %}

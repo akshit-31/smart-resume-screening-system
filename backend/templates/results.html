@@ -1,81 +1,107 @@
 {% extends "base.html" %}
-{% block title %}Matching Results{% endblock %}
+{% block title %}Ranked Results — ResumeIQ{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3><i class="fas fa-trophy text-warning me-2"></i>Ranked Candidates</h3>
-    <a href="{{ url_for('upload.index') }}" class="btn btn-outline-primary">
-        <i class="fas fa-redo me-1"></i>New Search
-    </a>
-</div>
+<div class="app-wrap">
+    <div class="container">
 
-{% if results %}
-<div class="row">
-    {% for r in results %}
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm h-100 {% if r.rank == 1 %}border-warning border-2{% endif %}">
-            <div
-                class="card-header d-flex justify-content-between align-items-center
-                    {% if r.rank == 1 %}bg-warning{% elif r.rank == 2 %}bg-secondary text-white{% elif r.rank == 3 %}bg-danger text-white{% else %}bg-light{% endif %}">
-                <span class="fw-bold">
-                    {% if r.rank == 1 %}🥇{% elif r.rank == 2 %}🥈{% elif r.rank == 3 %}🥉{% else %}#{{ r.rank }}{%
-                    endif %}
-                    {{ r.filename }}
-                </span>
-                <span class="badge bg-dark fs-6">{{ r.final_score }}%</span>
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">
+                    <i class="fas fa-trophy me-2" style="color:#f59e0b;font-size:1.3rem;"></i>
+                    Ranked Candidates
+                </h1>
+                <p class="page-subtitle">
+                    {% if results %}{{ results|length }} candidate{{ 's' if results|length != 1 else '' }} matched and ranked by relevance{% endif %}
+                </p>
             </div>
-            <div class="card-body">
-                {% if r.error %}
-                <div class="alert alert-danger py-2 mb-2">
-                    <i class="fas fa-exclamation-triangle me-1"></i>{{ r.error }}
-                </div>
-                {% else %}
-                <!-- Match Score -->
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between small text-muted mb-1">
-                        <span><i class="fas fa-chart-bar me-1"></i>Match Score</span>
-                        <span class="fw-bold">{{ r.tfidf_score }}%</span>
-                    </div>
-                    <div class="progress" style="height: 10px; border-radius: 5px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ r.tfidf_score }}%"
-                            aria-valuenow="{{ r.tfidf_score }}" aria-valuemin="0" aria-valuemax="100">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- File Info -->
-                <div class="d-flex align-items-center text-muted small mb-3">
-                    <i class="fas fa-file-pdf text-danger me-2"></i>
-                    <span>PDF Resume</span>
-                    <span class="mx-2">•</span>
-                    <i class="fas fa-hashtag me-1"></i>
-                    <span>Rank #{{ r.rank }}</span>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="d-flex flex-column gap-2">
-                    <div class="d-flex gap-2">
-                        <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=analyze"
-                            class="btn btn-primary btn-sm flex-fill">
-                            <i class="fas fa-eye me-1"></i>View & Analyze
-                        </a>
-                        <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=ai"
-                            class="btn btn-success btn-sm flex-fill">
-                            <i class="fas fa-magic me-1"></i>AI Resume
-                        </a>
-                    </div>
-                    <a href="{{ url_for('roast.roast_page', filename=r.filename) }}"
-                        class="btn btn-danger btn-sm w-100">
-                        <i class="fas fa-fire me-1"></i>💀 Roast My Resume
-                    </a>
-                </div>
-                {% endif %}
-            </div>
+            <a href="{{ url_for('upload.app_page') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-redo me-1"></i>New Search
+            </a>
         </div>
+
+        {% if results %}
+        <div class="row g-4">
+            {% for r in results %}
+            <div class="col-md-6">
+                <div class="result-card {% if r.rank == 1 %}top-rank{% endif %}">
+
+                    <!-- Card Header -->
+                    <div class="result-card-header">
+                        <span style="font-size:1.2rem;flex-shrink:0;">
+                            {% if r.rank == 1 %}🥇{% elif r.rank == 2 %}🥈{% elif r.rank == 3 %}🥉{% else %}
+                            <span style="background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;padding:0.15rem 0.55rem;font-size:0.8rem;font-weight:700;color:var(--text-secondary);">#{{ r.rank }}</span>
+                            {% endif %}
+                        </span>
+                        <span class="result-filename" title="{{ r.filename }}">{{ r.filename }}</span>
+                        <span class="result-score-chip">{{ r.final_score }}%</span>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="result-card-body">
+                        {% if r.error %}
+                        <div class="alert alert-danger py-2 mb-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>{{ r.error }}
+                        </div>
+                        {% else %}
+
+                        <!-- Match Score Bar -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1" style="font-size:0.82rem;color:var(--text-secondary);">
+                                <span><i class="fas fa-chart-bar me-1"></i>Match Score</span>
+                                <span style="font-weight:700;color:var(--text);">{{ r.tfidf_score }}%</span>
+                            </div>
+                            <div class="progress" style="height:8px;">
+                                <div class="progress-bar" role="progressbar" style="width:{{ r.tfidf_score }}%;" aria-valuenow="{{ r.tfidf_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+
+                        <!-- Meta -->
+                        <div class="d-flex align-items-center gap-3 mb-4" style="font-size:0.82rem;color:var(--text-secondary);">
+                            <span><i class="fas fa-file-pdf" style="color:#f87171;"></i> PDF Resume</span>
+                            <span><i class="fas fa-hashtag"></i> Rank #{{ r.rank }}</span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=analyze"
+                                    class="btn btn-primary btn-sm flex-fill">
+                                    <i class="fas fa-eye me-1"></i>View & Analyze
+                                </a>
+                                <a href="{{ url_for('resume_view.view_resume', filename=r.filename) }}?mode=ai"
+                                    class="btn btn-success btn-sm flex-fill">
+                                    <i class="fas fa-magic me-1"></i>AI Resume
+                                </a>
+                            </div>
+                            <a href="{{ url_for('roast.roast_page', filename=r.filename) }}"
+                                class="btn btn-danger btn-sm w-100">
+                                <i class="fas fa-fire me-1"></i>💀 Roast My Resume
+                            </a>
+                        </div>
+
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="text-center py-5">
+            <div style="width:80px;height:80px;background:rgba(245,158,11,0.1);border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">
+                ⚠️
+            </div>
+            <h4 style="color:var(--text-secondary);">No results found</h4>
+            <p class="text-muted">Please upload resumes and run matching first.</p>
+            <a href="{{ url_for('upload.app_page') }}" class="btn btn-primary mt-2">
+                <i class="fas fa-upload me-1"></i>Upload Resumes
+            </a>
+        </div>
+        {% endif %}
+
     </div>
-    {% endfor %}
 </div>
-{% else %}
-<div class="alert alert-warning">No results found. Please upload resumes and try again.</div>
-{% endif %}
 {% endblock %}

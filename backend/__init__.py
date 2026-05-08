@@ -9,12 +9,14 @@ def create_app():
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs('/tmp/flask_sessions', exist_ok=True)
 
+    from backend.routes.pages import pages_bp
     from backend.routes.upload import upload_bp
     from backend.routes.match import match_bp
     from backend.routes.results import results_bp
     from backend.routes.resume_view import resume_view_bp
     from backend.routes.roast import roast_bp
 
+    app.register_blueprint(pages_bp)
     app.register_blueprint(upload_bp)
     app.register_blueprint(match_bp)
     app.register_blueprint(results_bp)

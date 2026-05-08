@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}About — ResumeIQ{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<div class="about-hero">
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="section-tag">About</div>
+                <h1 class="section-title mt-2">Built for <span class="gradient-text">smarter hiring</span></h1>
+                <p class="section-subtitle mb-0">
+                    ResumeIQ is an open-source AI tool that helps recruiters find the best candidates faster —
+                    and helps job seekers understand exactly what they need to improve.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MISSION ===== -->
+<div class="about-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <div class="section-tag">Mission</div>
+                <h2 class="section-title mt-2">Hiring should be based on skill, not luck</h2>
+            </div>
+            <div class="col-lg-7">
+                <p style="color:var(--text-secondary);font-size:1.05rem;line-height:1.85;margin-bottom:1.25rem;">
+                    Too many qualified candidates get filtered out by keyword-matching ATS systems that don't understand context.
+                    Meanwhile, recruiters spend hours reading resumes manually when the best match could be found in seconds.
+                </p>
+                <p style="color:var(--text-secondary);font-size:1.05rem;line-height:1.85;margin:0;">
+                    We built ResumeIQ to solve both sides of this problem — giving recruiters an AI-powered shortlist
+                    and giving candidates transparent, actionable feedback on why they're being passed over.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== WHAT WE BUILT ===== -->
+<div class="about-section" style="background:rgba(255,255,255,0.015);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-tag">The Product</div>
+            <h2 class="section-title mt-2">What we built</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center">
+                    <div class="feature-icon purple mx-auto mb-3"><i class="fas fa-brain"></i></div>
+                    <div class="feature-title">Smart Matching</div>
+                    <p class="feature-desc">TF-IDF + cosine similarity gives every resume a precision relevance score against your job description.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center">
+                    <div class="feature-icon red mx-auto mb-3"><i class="fas fa-fire"></i></div>
+                    <div class="feature-title">AI Roast</div>
+                    <p class="feature-desc">Google Gemini provides brutally honest critique and rewrites each resume in context of the job description.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center">
+                    <div class="feature-icon green mx-auto mb-3"><i class="fas fa-chart-bar"></i></div>
+                    <div class="feature-title">Deep Analysis</div>
+                    <p class="feature-desc">ATS scoring, keyword gap analysis, skill extraction, and resume section parsing — all in one view.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center">
+                    <div class="feature-icon orange mx-auto mb-3"><i class="fas fa-magic"></i></div>
+                    <div class="feature-title">AI Optimizer</div>
+                    <p class="feature-desc">Generate an improved version of any resume tailored to the specific role — no experience fabrication.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TECHNOLOGY ===== -->
+<div class="about-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <div class="section-tag">Tech Stack</div>
+                <h2 class="section-title mt-2">Built on proven technology</h2>
+                <p style="color:var(--text-secondary);line-height:1.8;margin:0;">
+                    Industry-standard NLP libraries for text processing and matching, combined with
+                    Google Gemini for the generative AI features. Runs on a clean Python/Flask web stack
+                    deployable to Render or Vercel in minutes.
+                </p>
+            </div>
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    {% set stack = [
+                        ('fab fa-python', 'Python 3', 'Core language'),
+                        ('fas fa-flask', 'Flask', 'Web framework'),
+                        ('fas fa-brain', 'scikit-learn', 'TF-IDF & ML'),
+                        ('fas fa-language', 'NLTK', 'NLP preprocessing'),
+                        ('fas fa-file-pdf', 'PyMuPDF', 'PDF text extraction'),
+                        ('fas fa-robot', 'Google Gemini', 'AI roast & optimization'),
+                        ('fas fa-calculator', 'NumPy / SciPy', 'Vector mathematics'),
+                        ('fas fa-server', 'Gunicorn', 'Production WSGI server'),
+                    ] %}
+                    {% for icon, name, desc in stack %}
+                    <div class="col-sm-6">
+                        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;display:flex;align-items:center;gap:0.85rem;transition:border-color .2s;">
+                            <div style="width:38px;height:38px;background:rgba(124,108,244,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="{{ icon }}" style="color:var(--accent);font-size:0.9rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:700;font-size:0.9rem;">{{ name }}</div>
+                                <div style="color:var(--text-secondary);font-size:0.8rem;">{{ desc }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CTA ===== -->
+<div class="about-section text-center" style="border-bottom:none;">
+    <div class="container">
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:24px;padding:4rem 2rem;max-width:680px;margin:0 auto;">
+            <h2 class="section-title">Try it yourself</h2>
+            <p class="section-subtitle mb-4">
+                No account required. Upload your resumes and a job description — get results in seconds.
+            </p>
+            <a href="{{ url_for('upload.app_page') }}" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-rocket me-2"></i>Launch the App
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

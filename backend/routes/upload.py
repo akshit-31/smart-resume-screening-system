@@ -7,8 +7,8 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
-@upload_bp.route('/', methods=['GET'])
-def index():
+@upload_bp.route('/app', methods=['GET'])
+def app_page():
     return render_template('index.html')
 
 @upload_bp.route('/upload', methods=['POST'])

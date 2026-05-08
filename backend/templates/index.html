@@ -1,209 +1,133 @@
 {% extends "base.html" %}
-{% block title %}Smart Resume Screener{% endblock %}
+{% block title %}Upload Resumes — ResumeIQ{% endblock %}
 
 {% block content %}
+<div class="app-wrap">
+    <div class="container">
 
-<!-- ===== WELCOME OVERLAY ===== -->
-<div id="welcome-overlay">
-    <!-- Floating particles -->
-    <div class="welcome-particles" id="particles"></div>
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
 
-    <!-- Content -->
-    <div style="position: relative; z-index: 1; padding: 2rem;">
-        <div class="welcome-logo">
-            <i class="fas fa-file-search"></i>
-        </div>
-
-        <h1 class="welcome-title">Smart Resume Screener</h1>
-        <p class="welcome-subtitle">AI-powered resume matching & optimization platform</p>
-
-        <div class="welcome-features">
-            <div class="welcome-feature-pill">
-                <i class="fas fa-bolt"></i> Instant Matching
-            </div>
-            <div class="welcome-feature-pill">
-                <i class="fas fa-brain"></i> AI Analysis
-            </div>
-            <div class="welcome-feature-pill">
-                <i class="fas fa-magic"></i> Resume Optimizer
-            </div>
-            <div class="welcome-feature-pill">
-                <i class="fas fa-trophy"></i> Smart Ranking
-            </div>
-        </div>
-
-        <button class="welcome-btn" onclick="dismissWelcome()">
-            <i class="fas fa-rocket me-2"></i>Get Started
-        </button>
-
-        <p style="color: #4a5568; font-size: 0.8rem; margin-top: 1.5rem;">
-            Click anywhere to continue
-        </p>
-    </div>
-</div>
-
-<!-- ===== MAIN PAGE ===== -->
-<div class="row justify-content-center">
-    <div class="col-lg-7">
-
-        <!-- Upload Card -->
-        <div class="card shadow-lg mb-4">
-            <div class="card-header">
-                <h4 class="mb-0 fw-bold">
-                    <i class="fas fa-cloud-upload-alt me-2" style="color: #a78bfa;"></i>
-                    Upload Resumes
-                </h4>
-            </div>
-            <div class="card-body p-4">
-                <form action="{{ url_for('upload.upload_resumes') }}" method="POST" enctype="multipart/form-data"
-                    id="uploadForm">
-
-                    <!-- Drop Zone -->
-                    <div class="upload-zone mb-4" id="dropZone" onclick="document.getElementById('resumes').click()">
-                        <i class="fas fa-file-pdf"></i>
-                        <h5 style="color: #c4b5fd; margin-bottom: 0.5rem;">Drop PDF files here</h5>
-                        <p class="text-muted mb-0" style="font-size: 0.9rem;">or click to browse files</p>
-                        <input type="file" id="resumes" name="resumes" accept=".pdf" multiple required
-                            style="display: none;" onchange="handleFileSelect(this.files)">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">
+                            <i class="fas fa-cloud-upload-alt me-2" style="color:var(--accent);font-size:1.3rem;"></i>
+                            Upload Resumes
+                        </h1>
+                        <p class="page-subtitle">Upload PDF resumes to start screening candidates</p>
                     </div>
+                    <a href="{{ url_for('match.jd_input') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-search me-1"></i>Go to Match
+                    </a>
+                </div>
 
-                    <!-- File Preview -->
-                    <div id="file-preview" class="mb-4" style="display: none;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span style="color: #a78bfa; font-weight: 600; font-size: 0.9rem;">
-                                <i class="fas fa-paperclip me-1"></i>Selected Files
-                            </span>
-                            <span id="file-count" class="badge"
-                                style="background: rgba(102,126,234,0.3); color: #c4b5fd;"></span>
+                <!-- Upload Card -->
+                <div class="card shadow-lg mb-4">
+                    <div class="card-body p-4">
+                        <form action="{{ url_for('upload.upload_resumes') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+                            <!-- Drop Zone -->
+                            <div class="upload-zone mb-4" id="dropZone" onclick="document.getElementById('resumes').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <h5>Drop PDF files here</h5>
+                                <p class="text-muted mb-0" style="font-size:0.88rem;">or click to browse files</p>
+                                <input type="file" id="resumes" name="resumes" accept=".pdf" multiple required
+                                    style="display:none;" onchange="handleFileSelect(this.files)">
+                            </div>
+
+                            <!-- File Preview -->
+                            <div id="file-preview" class="mb-4" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span style="color:var(--accent);font-weight:600;font-size:0.88rem;">
+                                        <i class="fas fa-paperclip me-1"></i>Selected Files
+                                    </span>
+                                    <span id="file-count" class="badge"
+                                        style="background:rgba(124,108,244,0.2);color:var(--accent);border:1px solid rgba(124,108,244,0.3);"></span>
+                                </div>
+                                <div id="file-list"></div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                                <i class="fas fa-rocket me-2"></i>Upload & Continue to Match
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- How It Works -->
+                <p class="text-muted text-center mb-3" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:2px;">How It Works</p>
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <div class="step-card">
+                            <div class="step-number">1</div>
+                            <i class="fas fa-upload mb-2" style="color:var(--accent);font-size:1.2rem;display:block;"></i>
+                            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Upload PDF Resumes</p>
                         </div>
-                        <div id="file-list"></div>
                     </div>
+                    <div class="col-4">
+                        <div class="step-card">
+                            <div class="step-number">2</div>
+                            <i class="fas fa-file-alt mb-2" style="color:var(--accent);font-size:1.2rem;display:block;"></i>
+                            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Enter Job Description</p>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="step-card">
+                            <div class="step-number">3</div>
+                            <i class="fas fa-trophy mb-2" style="color:var(--accent);font-size:1.2rem;display:block;"></i>
+                            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Get Ranked Results</p>
+                        </div>
+                    </div>
+                </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
-                        <i class="fas fa-rocket me-2"></i>Upload & Continue
-                    </button>
-                </form>
             </div>
         </div>
-
-        <!-- How It Works -->
-        <div class="mb-2" style="text-align: center;">
-            <span style="color: #718096; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px;">
-                How It Works
-            </span>
-        </div>
-        <div class="row g-3 mb-4">
-            <div class="col-4">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <i class="fas fa-upload mb-2" style="color: #a78bfa; font-size: 1.3rem;"></i>
-                    <p class="mb-0" style="font-size: 0.85rem; color: #a0aec0;">Upload PDF Resumes</p>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <i class="fas fa-file-alt mb-2" style="color: #a78bfa; font-size: 1.3rem;"></i>
-                    <p class="mb-0" style="font-size: 0.85rem; color: #a0aec0;">Enter Job Description</p>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <i class="fas fa-trophy mb-2" style="color: #a78bfa; font-size: 1.3rem;"></i>
-                    <p class="mb-0" style="font-size: 0.85rem; color: #a0aec0;">Get Ranked Results</p>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
 
 <script>
-    // ===== WELCOME OVERLAY =====
-    function createParticles() {
-        const container = document.getElementById('particles');
-        for (let i = 0; i < 25; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            p.style.left = Math.random() * 100 + 'vw';
-            p.style.animationDuration = (6 + Math.random() * 10) + 's';
-            p.style.animationDelay = (Math.random() * 8) + 's';
-            p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
-            p.style.opacity = (0.3 + Math.random() * 0.5).toString();
-            container.appendChild(p);
-        }
-    }
+function handleFileSelect(files) {
+    const preview = document.getElementById('file-preview');
+    const list = document.getElementById('file-list');
+    const count = document.getElementById('file-count');
 
-    function dismissWelcome() {
-        const overlay = document.getElementById('welcome-overlay');
-        overlay.classList.add('hide');
-        setTimeout(() => overlay.style.display = 'none', 800);
-        sessionStorage.setItem('welcomed', '1');
-    }
+    if (!files.length) { preview.style.display = 'none'; return; }
 
-    // Auto-dismiss on click anywhere on overlay
-    document.getElementById('welcome-overlay').addEventListener('click', function (e) {
-        if (e.target !== document.querySelector('.welcome-btn')) {
-            dismissWelcome();
-        }
-    });
-
-    // Skip if already seen this session
-    window.addEventListener('DOMContentLoaded', function () {
-        createParticles();
-        if (sessionStorage.getItem('welcomed')) {
-            document.getElementById('welcome-overlay').style.display = 'none';
-        }
-    });
-
-    // ===== FILE UPLOAD =====
-    function handleFileSelect(files) {
-        const preview = document.getElementById('file-preview');
-        const list = document.getElementById('file-list');
-        const count = document.getElementById('file-count');
-
-        if (!files.length) { preview.style.display = 'none'; return; }
-
-        list.innerHTML = '';
-        Array.from(files).forEach(file => {
-            const size = (file.size / 1024).toFixed(1);
-            list.innerHTML += `
+    list.innerHTML = '';
+    Array.from(files).forEach(file => {
+        const size = (file.size / 1024).toFixed(1);
+        list.innerHTML += `
             <div class="file-item">
-                <i class="fas fa-file-pdf" style="color: #f87171;"></i>
-                <span style="flex:1;">${file.name}</span>
-                <span style="color: #718096; font-size: 0.8rem;">${size} KB</span>
+                <i class="fas fa-file-pdf" style="color:#f87171;flex-shrink:0;"></i>
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.name}</span>
+                <span style="color:var(--text-muted);font-size:0.8rem;flex-shrink:0;">${size} KB</span>
             </div>`;
-        });
-
-        count.textContent = files.length + ' file' + (files.length > 1 ? 's' : '');
-        preview.style.display = 'block';
-    }
-
-    // Drag & Drop
-    const dropZone = document.getElementById('dropZone');
-
-    dropZone.addEventListener('dragover', e => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
     });
 
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    count.textContent = files.length + ' file' + (files.length > 1 ? 's' : '');
+    preview.style.display = 'block';
+}
 
-    dropZone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        const input = document.getElementById('resumes');
-        input.files = e.dataTransfer.files;
-        handleFileSelect(e.dataTransfer.files);
-    });
+// Drag & Drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const input = document.getElementById('resumes');
+    input.files = e.dataTransfer.files;
+    handleFileSelect(e.dataTransfer.files);
+});
 
-    // Loading on submit
-    document.getElementById('uploadForm').addEventListener('submit', function () {
-        const btn = document.getElementById('submitBtn');
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
-        btn.disabled = true;
-    });
+// Loading on submit
+document.getElementById('uploadForm').addEventListener('submit', function () {
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+    btn.disabled = true;
+});
 </script>
-
 {% endblock %}
